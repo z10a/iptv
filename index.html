@@ -6,7 +6,6 @@
     <title>IPTV Channels</title>
     <link href="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video-js.min.css" rel="stylesheet">
     <style>
-        /* Basic styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -37,14 +36,6 @@
             justify-content: center;
             margin: 20px;
         }
-        
-        .video-js .vjs-tech {
-            min-inline-size: fit-content;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
 
         .search-container input {
             padding: 12px;
@@ -56,7 +47,6 @@
             background-color: #fff;
         }
 
-        /* Toggle Dark/Light Mode */
         .mode-toggle {
             position: fixed;
             top: 20px;
@@ -73,9 +63,10 @@
             background-color: #0056b3;
         }
 
+        /* Channel List */
         .channel-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
             padding: 20px;
         }
@@ -115,44 +106,50 @@
             background-color: #0056b3;
         }
 
-        .pagination {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .pagination button {
-            padding: 12px 24px;
-            background-color: #007bff;
-            border: none;
-            color: white;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .pagination button:hover {
-            background-color: #0056b3;
-        }
-
         /* Video player container */
         .video-container {
             display: none;
             margin-top: 10px;
-            max-width: 100%;
             width: 100%;
+            height: 200px; /* Default height for small player */
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .video-container.fullscreen {
+            width: 100%;
+            height: 100%;
         }
 
         .video-container video {
             width: 100%;
-            max-width: 100%;
-            height: auto;
+            height: 100%;
+            object-fit: cover;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
+        .fullscreen-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .fullscreen-button:hover {
+            background-color: #0056b3;
+        }
+
         /* Dark mode specific styling */
         body.dark-mode .channel {
-            background-color: #555; /* Gray background for channels */
+            background-color: #555;
         }
 
         body.dark-mode .channel a {
@@ -166,13 +163,65 @@
         body.dark-mode h1, body.dark-mode .search-container input {
             color: white;
         }
+
+        /* Sidebar for PC */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 200px;
+            height: 100%;
+            background-color: #333;
+            color: white;
+            padding-top: 20px;
+            display: none;
+        }
+
+        .sidebar a {
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            display: block;
+            font-size: 18px;
+        }
+
+        .sidebar a:hover {
+            background-color: #575757;
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .channel-list {
+                grid-template-columns: 1fr; /* One channel per row */
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .mode-toggle {
+                top: 10px;
+                right: 10px;
+            }
+        }
+
+        @media (min-width: 601px) {
+            .channel-list {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Multiple channels per row */
+            }
+
+            .sidebar {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body class="light-mode">
 
+    <!-- Mode Toggle Button -->
     <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
 
-    <h1 onclick="reloadPage()">IPTV Channels</h1> <!-- Click to reload the page -->
+    <h1 onclick="reloadPage()">IPTV Channels</h1> <!-- Reload Page -->
 
     <!-- Search Bar -->
     <div class="search-container">
@@ -225,76 +274,76 @@
                 if (stream) {
                     const channelElement = document.createElement('div');
                     channelElement.classList.add('channel');
-                    channelElement.innerHTML = `
-                        <img src="${channel.logo}" alt="${channel.name}" />
-                        <div class="channel-name">${channel.name}</div>
-                        <a href="javascript:void(0)" onclick="toggleVideo(${i}, '${stream.url}')">Watch Now</a>
-                        <div id="video-container-${i}" class="video-container">
-                            <video id="iptvPlayer-${i}" class="video-js vjs-default-skin" controls>
-                                Your browser does not support the video tag.
-                            </video>
-                        </div>
-                    `;
+
+                    const channelName = document.createElement('div');
+                    channelName.classList.add('channel-name');
+                    channelName.textContent = channel.name;
+                    
+                    const videoContainer = document.createElement('div');
+                    videoContainer.classList.add('video-container');
+                    videoContainer.id = `video-container-${i}`;
+
+                    const video = document.createElement('video');
+                    video.id = `iptvPlayer-${i}`;
+                    video.setAttribute('class', 'video-js vjs-default-skin');
+                    video.setAttribute('data-setup', '{}');
+                    videoContainer.appendChild(video);
+
+                    const channelLink = document.createElement('a');
+                    channelLink.href = "#";
+                    channelLink.textContent = 'Watch Now';
+                    channelLink.onclick = () => toggleVideo(i, stream.url);
+
+                    channelElement.appendChild(channelName);
+                    channelElement.appendChild(videoContainer);
+                    channelElement.appendChild(channelLink);
+
                     channelContainer.appendChild(channelElement);
                 }
             }
 
             currentChannelIndex = endIndex;
-
-            if (currentChannelIndex >= filteredChannels.length) {
-                document.getElementById('show-more').style.display = 'none';
-            }
         }
 
-        // Show more channels
-        function loadMoreChannels() {
-            loadChannels();
-        }
-
-        // Filter channels based on search input
-        function filterChannels() {
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
-            filteredChannels = allChannels.filter(channel =>
-                channel.name.toLowerCase().includes(searchTerm)
-            );
-
-            currentChannelIndex = 0;
-            document.getElementById('channel-container').innerHTML = '';
-            loadChannels();
-        }
-
-        // Toggle video display and play the selected stream
+        // Toggle the video player (small player below the channel logo)
         function toggleVideo(index, streamUrl) {
             const videoContainer = document.getElementById(`video-container-${index}`);
             const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
 
-            // Hide all video containers and stop all playing videos
-            const allVideoContainers = document.querySelectorAll('.video-container');
-            allVideoContainers.forEach(container => {
-                container.style.display = 'none';
-                const video = container.querySelector('video');
-                if (video) video.pause();
+            videoContainer.style.display = 'block';
+            const player = videojs(videoPlayer, {
+                autoplay: true,
+                controls: true,
+                sources: [{
+                    src: streamUrl,
+                    type: 'application/x-mpegURL'
+                }]
             });
 
-            if (videoContainer.style.display === 'block') {
-                videoContainer.style.display = 'none';
-                videoPlayer.pause();
-            } else {
-                videoContainer.style.display = 'block';
+            player.ready(() => {
+                player.play();
+            });
 
-                const player = videojs(videoPlayer, {
-                    autoplay: true,
-                    controls: true,
-                    sources: [{
-                        src: streamUrl,
-                        type: 'application/x-mpegURL'
-                    }]
-                });
+            // Add fullscreen toggle button
+            const fullscreenButton = document.createElement('button');
+            fullscreenButton.classList.add('fullscreen-button');
+            fullscreenButton.textContent = '🔲';
+            fullscreenButton.onclick = () => toggleFullScreen(index);
+            videoContainer.appendChild(fullscreenButton);
+        }
 
-                player.ready(() => {
-                    player.play();
-                });
-            }
+        // Toggle full screen for video player
+        function toggleFullScreen(index) {
+            const videoContainer = document.getElementById(`video-container-${index}`);
+            videoContainer.classList.toggle('fullscreen');
+        }
+
+        // Search channels
+        function filterChannels() {
+            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+            filteredChannels = allChannels.filter(channel => channel.name.toLowerCase().includes(searchTerm));
+            currentChannelIndex = 0;
+            loadChannels();
         }
 
         // Toggle between dark and light mode
