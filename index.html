@@ -69,6 +69,18 @@
         .pagination a:hover {
             background-color: #ddd;
         }
+        /* Styling for the video element */
+        .video-container {
+            display: none;
+            text-align: center;
+            padding: 10px;
+        }
+        .video-container video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -88,14 +100,6 @@
     <!-- Show More Button -->
     <div class="pagination">
         <button id="show-more" onclick="loadMoreChannels()">Show More</button>
-    </div>
-
-    <!-- Video.js player (hidden initially) -->
-    <div id="video-player-container" style="display:none; text-align:center; padding:20px;">
-        <h2>Now Playing</h2>
-        <video id="iptvPlayer" class="video-js vjs-default-skin" controls preload="auto" style="max-width: 100%;">
-            Your browser does not support the video tag.
-        </video>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
@@ -130,7 +134,12 @@
                 const channelHtml = `
                     <img src="${channel.logo}" alt="${channel.name}" />
                     <h3>${channel.name}</h3>
-                    <a href="javascript:void(0)" onclick="playChannel('${channel.url}')">Watch Now</a>
+                    <a href="javascript:void(0)" onclick="toggleVideo(${i})">Watch Now</a>
+                    <div id="video-container-${i}" class="video-container">
+                        <video id="iptvPlayer-${i}" class="video-js vjs-default-skin" controls preload="auto">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
                 `;
                 channelElement.innerHTML = channelHtml;
 
@@ -166,22 +175,30 @@
             loadChannels();
         }
 
-        // Play the selected channel in the Video.js player
-        function playChannel(streamUrl) {
-            // Show the video player
-            document.getElementById('video-player-container').style.display = 'block';
-            
-            // Set the stream URL in the video player
-            const player = videojs('iptvPlayer', {
-                techOrder: ['html5'],
-                sources: [{
-                    src: streamUrl,
-                    type: 'application/x-mpegURL'
-                }]
-            });
+        // Toggle the video display and play the selected channel stream
+        function toggleVideo(index) {
+            const videoContainer = document.getElementById(`video-container-${index}`);
+            const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
+            const currentUrl = channels[index].url;
 
-            // Play the stream
-            player.play();
+            // If the video is already visible, hide it
+            if (videoContainer.style.display === 'block') {
+                videoContainer.style.display = 'none';
+                videoPlayer.pause();
+            } else {
+                // Show the video container and set the source URL
+                videoContainer.style.display = 'block';
+
+                const player = videojs(videoPlayer, {
+                    techOrder: ['html5'],
+                    sources: [{
+                        src: currentUrl,
+                        type: 'application/x-mpegURL'
+                    }]
+                });
+
+                player.play();
+            }
         }
     </script>
 
