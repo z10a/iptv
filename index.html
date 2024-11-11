@@ -6,6 +6,7 @@
     <title>IPTV Channels</title>
     <link href="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video-js.min.css" rel="stylesheet">
     <style>
+        /* Basic styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -28,13 +29,19 @@
         h1 {
             text-align: center;
             margin-top: 20px;
-            cursor: pointer;
         }
 
         .search-container {
             display: flex;
             justify-content: center;
             margin: 20px;
+        }
+        .video-js .vjs-tech {
+            min-inline-size: fit-content;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         .search-container input {
@@ -47,6 +54,7 @@
             background-color: #fff;
         }
 
+        /* Toggle Dark/Light Mode */
         .mode-toggle {
             position: fixed;
             top: 20px;
@@ -63,10 +71,9 @@
             background-color: #0056b3;
         }
 
-        /* Channel List */
         .channel-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             padding: 20px;
         }
@@ -77,7 +84,6 @@
             overflow: hidden;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
-            transition: background-color 0.3s;
         }
 
         .channel img {
@@ -106,133 +112,47 @@
             background-color: #0056b3;
         }
 
-        /* Video player container */
-        .video-container {
-            display: block;
-            width: 100%;
-            height: 200px; /* Default height for video */
-            margin-top: 10px;
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
         }
 
-        .video-container video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Dark mode specific styling */
-        body.dark-mode .channel {
-            background-color: #555;
-        }
-
-        body.dark-mode .channel a {
-            background-color: #0062cc;
-        }
-
-        body.dark-mode .channel a:hover {
-            background-color: #004085;
-        }
-
-        body.dark-mode h1, body.dark-mode .search-container input {
-            color: white;
-        }
-
-        /* Sidebar Menu for PC */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 200px;
-            height: 100%;
-            background-color: #333;
-            color: white;
-            padding-top: 20px;
-            display: none;
-        }
-
-        .sidebar a {
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            display: block;
-            font-size: 18px;
-        }
-
-        .sidebar a:hover {
-            background-color: #575757;
-        }
-
-        /* Sidebar toggle for mobile */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
+        .pagination button {
+            padding: 12px 24px;
             background-color: #007bff;
+            border: none;
             color: white;
-            padding: 10px;
+            font-size: 16px;
             border-radius: 5px;
             cursor: pointer;
         }
 
-        .sidebar-toggle:hover {
+        .pagination button:hover {
             background-color: #0056b3;
         }
 
-        /* Responsive design */
-        @media (max-width: 600px) {
-            .channel-list {
-                grid-template-columns: 1fr; /* One channel per row */
-            }
-
-            .sidebar {
-                display: none;
-            }
-
-            .sidebar-toggle {
-                display: block;
-            }
-
-            .mode-toggle {
-                top: 10px;
-                right: 10px;
-            }
+        /* Video player container */
+        .video-container {
+            display: none;
+            margin-top: 10px;
+            max-width: 100%;
+            width: 100%;
         }
 
-        @media (min-width: 601px) {
-            .channel-list {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Multiple channels per row */
-            }
-
-            .sidebar {
-                display: block;
-            }
-
-            .sidebar-toggle {
-                display: none;
-            }
+        .video-container video {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body class="light-mode">
 
-    <!-- Sidebar Menu for PC -->
-    <div id="sidebar" class="sidebar">
-        <a href="#">Home</a>
-        <a href="#">Categories</a>
-        <a href="#">Languages</a>
-        <a href="#">Settings</a>
-    </div>
-
-    <!-- Sidebar Toggle for Mobile -->
-    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-
-    <!-- Mode Toggle Button -->
     <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
 
-    <h1 onclick="reloadPage()">IPTV Channels</h1> <!-- Reload Page -->
+    <h1>IPTV Channels</h1>
 
     <!-- Search Bar -->
     <div class="search-container">
@@ -258,8 +178,8 @@
         const itemsPerPage = 100;
 
         // Fetch channel and stream data
-        Promise.all([ 
-            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()), 
+        Promise.all([
+            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()),
             fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json())
         ])
         .then(([channelData, streamData]) => {
@@ -285,42 +205,25 @@
                 if (stream) {
                     const channelElement = document.createElement('div');
                     channelElement.classList.add('channel');
-
-                    const channelName = document.createElement('div');
-                    channelName.classList.add('channel-name');
-                    channelName.textContent = channel.name;
-
-                    const videoContainer = document.createElement('div');
-                    videoContainer.classList.add('video-container');
-                    const video = document.createElement('video');
-                    video.setAttribute('class', 'video-js vjs-default-skin');
-                    video.setAttribute('data-setup', '{}');
-                    video.setAttribute('autoplay', 'true');
-                    video.setAttribute('controls', 'true');
-                    videoContainer.appendChild(video);
-
-                    const channelLink = document.createElement('a');
-                    channelLink.href = "#";
-                    channelLink.textContent = 'Watch Now';
-                    channelLink.onclick = () => toggleVideo(i, stream.url);
-
-                    channelElement.appendChild(channelName);
-                    channelElement.appendChild(videoContainer);
-                    channelElement.appendChild(channelLink);
-
+                    channelElement.innerHTML = `
+                        <img src="${channel.logo}" alt="${channel.name}" />
+                        <div class="channel-name">${channel.name}</div>
+                        <a href="javascript:void(0)" onclick="toggleVideo(${i}, '${stream.url}')">Watch Now</a>
+                        <div id="video-container-${i}" class="video-container">
+                            <video id="iptvPlayer-${i}" class="video-js vjs-default-skin" controls>
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `;
                     channelContainer.appendChild(channelElement);
                 }
             }
 
             currentChannelIndex = endIndex;
-        }
 
-        // Filter channels based on search input
-        function filterChannels() {
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
-            filteredChannels = allChannels.filter(channel => channel.name.toLowerCase().includes(searchTerm));
-            currentChannelIndex = 0;
-            loadChannels();
+            if (currentChannelIndex >= filteredChannels.length) {
+                document.getElementById('show-more').style.display = 'none';
+            }
         }
 
         // Show more channels
@@ -328,25 +231,57 @@
             loadChannels();
         }
 
-        // Toggle between dark and light mode
+        // Filter channels based on search input
+        function filterChannels() {
+            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+            filteredChannels = allChannels.filter(channel =>
+                channel.name.toLowerCase().includes(searchTerm)
+            );
+
+            currentChannelIndex = 0;
+            document.getElementById('channel-container').innerHTML = '';
+            loadChannels();
+        }
+
+        // Toggle video display and play the selected stream
+        function toggleVideo(index, streamUrl) {
+            const videoContainer = document.getElementById(`video-container-${index}`);
+            const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
+
+            if (videoContainer.style.display === 'block') {
+                videoContainer.style.display = 'none';
+                videoPlayer.pause();
+            } else {
+                videoContainer.style.display = 'block';
+
+                const player = videojs(videoPlayer, {
+                    techOrder: ['html5'],
+                    sources: [{
+                        src: streamUrl,
+                        type: 'application/x-mpegURL' // HLS stream type
+                    }]
+                });
+
+                player.play();
+            }
+        }
+
+        // Toggle between Light and Dark mode
         function toggleMode() {
             const body = document.body;
-            const isDarkMode = body.classList.contains('dark-mode');
-            body.classList.toggle('dark-mode', !isDarkMode);
-            body.classList.toggle('light-mode', isDarkMode);
-            document.querySelector('.mode-toggle').textContent = isDarkMode ? 'Switch to Dark Mode' : 'Switch to Light Mode';
-        }
+            const modeToggleButton = document.querySelector('.mode-toggle');
 
-        // Reload the page when "IPTV Channels" is clicked
-        function reloadPage() {
-            window.location.reload();
-        }
-
-        // Toggle Sidebar visibility (for mobile)
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.style.display = sidebar.style.display === 'block' ? 'none' : 'block';
+            if (body.classList.contains('light-mode')) {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                modeToggleButton.textContent = "Switch to Light Mode";
+            } else {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                modeToggleButton.textContent = "Switch to Dark Mode";
+            }
         }
     </script>
+
 </body>
 </html>
