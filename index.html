@@ -180,43 +180,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
-
     <script>
-        // Channels data (from iptv-org.github.io)
-        const channels = [
-            {
-                "id": "AnhuiTV.cn",
-                "name": "Anhui TV",
-                "alt_names": ["安徽卫视"],
-                "network": "Anhui",
-                "owners": ["China Central Television"],
-                "country": "CN",
-                "subdivision": "CN-AH",
-                "city": "Hefei",
-                "broadcast_area": ["s/CN-AH"],
-                "languages": ["zho"],
-                "categories": ["general"],
-                "is_nsfw": false,
-                "launched": "2016-07-28",
-                "closed": "2020-05-31",
-                "replaced_by": "CCTV1.cn",
-                "website": "http://www.ahtv.cn/",
-                "logo": "https://example.com/logo.png"
-            }
-            // Add more channels here
-        ];
-
-        // Streams data (from iptv-org.github.io)
-        const streams = [
-            {
-                "channel": "AnhuiTV.cn",
-                "url": "http://example.com/stream.m3u8",
-                "timeshift": "2",
-                "http_referrer": "http://example.com/",
-                "user_agent": "Mozilla/5.0"
-            }
-            // Add more streams here
-        ];
+        let channels = [];
+        let streams = [];
 
         let filteredChannels = channels;
         let currentChannelIndex = 0;
