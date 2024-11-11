@@ -12,36 +12,82 @@
             margin: 0;
             padding: 0;
             transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            min-height: 100vh;
         }
 
-        /* Light mode */
+        /* Sidebar styles */
+        .sidebar {
+            width: 250px;
+            background-color: #222;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .sidebar nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            margin: 10px 0;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar nav a:hover {
+            background-color: #007bff;
+        }
+
+        /* Main content area */
+        .main-content {
+            margin-left: 250px;
+            width: 100%;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+        /* Light and Dark mode */
         body.light-mode {
             background-color: #fafafa;
             color: #333;
         }
 
-        /* Dark mode */
         body.dark-mode {
             background-color: #1e1e1e;
             color: #ddd;
         }
 
-        h1 {
+        .mode-toggle {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
             text-align: center;
-            margin-top: 20px;
+        }
+
+        .mode-toggle:hover {
+            background-color: #0056b3;
         }
 
         .search-container {
             display: flex;
             justify-content: center;
             margin: 20px;
-        }
-        .video-js .vjs-tech {
-            min-inline-size: fit-content;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
         }
 
         .search-container input {
@@ -52,23 +98,6 @@
             border-radius: 5px;
             border: 1px solid #ddd;
             background-color: #fff;
-        }
-
-        /* Toggle Dark/Light Mode */
-        .mode-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .mode-toggle:hover {
-            background-color: #0056b3;
         }
 
         .channel-list {
@@ -150,21 +179,32 @@
 </head>
 <body class="light-mode">
 
-    <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
-
-    <h1>IPTV Channels</h1>
-
-    <!-- Search Bar -->
-    <div class="search-container">
-        <input type="text" id="search-bar" placeholder="Search Channels" oninput="filterChannels()">
+    <div class="sidebar">
+        <h2>IPTV</h2>
+        <nav>
+            <a href="javascript:void(0)" onclick="toggleMode()">Toggle Dark Mode</a>
+            <a href="javascript:void(0)">Home</a>
+            <a href="javascript:void(0)">Channels</a>
+            <a href="javascript:void(0)">Settings</a>
+        </nav>
+        <div class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</div>
     </div>
 
-    <!-- Channel List -->
-    <div id="channel-container" class="channel-list"></div>
+    <div class="main-content">
+        <h1>IPTV Channels</h1>
 
-    <!-- Show More Button -->
-    <div class="pagination">
-        <button id="show-more" onclick="loadMoreChannels()">Show More</button>
+        <!-- Search Bar -->
+        <div class="search-container">
+            <input type="text" id="search-bar" placeholder="Search Channels" oninput="filterChannels()">
+        </div>
+
+        <!-- Channel List -->
+        <div id="channel-container" class="channel-list"></div>
+
+        <!-- Show More Button -->
+        <div class="pagination">
+            <button id="show-more" onclick="loadMoreChannels()">Show More</button>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
