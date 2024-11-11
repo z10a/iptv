@@ -164,27 +164,45 @@
     <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
 
     <script>
-        let allChannels = [];
-        let filteredChannels = [];
-        let streams = [];
+        // Channels data (from iptv-org.github.io)
+        const channels = [
+            {
+                "id": "AnhuiTV.cn",
+                "name": "Anhui TV",
+                "alt_names": ["安徽卫视"],
+                "network": "Anhui",
+                "owners": ["China Central Television"],
+                "country": "CN",
+                "subdivision": "CN-AH",
+                "city": "Hefei",
+                "broadcast_area": ["s/CN-AH"],
+                "languages": ["zho"],
+                "categories": ["general"],
+                "is_nsfw": false,
+                "launched": "2016-07-28",
+                "closed": "2020-05-31",
+                "replaced_by": "CCTV1.cn",
+                "website": "http://www.ahtv.cn/",
+                "logo": "https://example.com/logo.png"
+            }
+            // Add more channels here
+        ];
+
+        // Streams data (from iptv-org.github.io)
+        const streams = [
+            {
+                "channel": "AnhuiTV.cn",
+                "url": "http://example.com/stream.m3u8",
+                "timeshift": "2",
+                "http_referrer": "http://example.com/",
+                "user_agent": "Mozilla/5.0"
+            }
+            // Add more streams here
+        ];
+
+        let filteredChannels = channels;
         let currentChannelIndex = 0;
         const itemsPerPage = 100;
-
-        // Fetch channel and stream data
-        Promise.all([ 
-            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()),
-            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json()) 
-        ])
-        .then(([channelData, streamData]) => {
-            allChannels = channelData;
-            streams = streamData;
-            filteredChannels = allChannels;
-            loadChannels();  // Load initial channels
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            document.getElementById('channel-container').innerHTML = '<p>Failed to load channels. Please try again later.</p>';
-        });
 
         // Load channels into the page
         function loadChannels() {
@@ -227,7 +245,7 @@
         // Filter channels based on search input
         function filterChannels() {
             const searchTerm = document.getElementById('search-bar').value.toLowerCase();
-            filteredChannels = allChannels.filter(channel =>
+            filteredChannels = channels.filter(channel =>
                 channel.name.toLowerCase().includes(searchTerm)
             );
 
@@ -274,7 +292,9 @@
                 modeToggleButton.textContent = "Switch to Dark Mode";
             }
         }
-    </script>
 
+        // Initial load
+        loadChannels();
+    </script>
 </body>
 </html>
