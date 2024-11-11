@@ -37,14 +37,6 @@
             justify-content: center;
             margin: 20px;
         }
-        
-        .video-js .vjs-tech {
-            min-inline-size: fit-content;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
 
         .search-container input {
             padding: 12px;
@@ -73,6 +65,7 @@
             background-color: #0056b3;
         }
 
+        /* Channel List */
         .channel-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -138,14 +131,16 @@
         .video-container {
             display: none;
             margin-top: 10px;
-            max-width: 100%;
             width: 100%;
+            height: 200px; /* Maintain default height for channel */
+            position: relative;
+            overflow: hidden;
         }
 
         .video-container video {
             width: 100%;
-            max-width: 100%;
-            height: auto;
+            height: 100%;
+            object-fit: cover; /* Make video cover the container */
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
@@ -165,6 +160,34 @@
 
         body.dark-mode h1, body.dark-mode .search-container input {
             color: white;
+        }
+
+        /* Responsive design: For mobile screens, show one channel per row */
+        @media (max-width: 600px) {
+            .channel-list {
+                grid-template-columns: 1fr; /* 1 channel per row */
+            }
+
+            .channel a {
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            .search-container input {
+                width: 90%;
+            }
+
+            .mode-toggle {
+                top: 10px;
+                right: 10px;
+            }
+        }
+
+        /* Larger screens: For tablets and up, show multiple channels per row */
+        @media (min-width: 601px) {
+            .channel-list {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Multiple channels per row */
+            }
         }
     </style>
 </head>
@@ -268,19 +291,9 @@
             const videoContainer = document.getElementById(`video-container-${index}`);
             const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
 
-            // Hide all video containers and stop all playing videos
-            const allVideoContainers = document.querySelectorAll('.video-container');
-            allVideoContainers.forEach(container => {
-                container.style.display = 'none';
-                const video = container.querySelector('video');
-                if (video) video.pause();
-            });
-
-            if (videoContainer.style.display === 'block') {
-                videoContainer.style.display = 'none';
-                videoPlayer.pause();
-            } else {
+            if (videoContainer.style.display === 'none' || videoContainer.style.display === '') {
                 videoContainer.style.display = 'block';
+                videoPlayer.src = streamUrl;
 
                 const player = videojs(videoPlayer, {
                     autoplay: true,
@@ -294,6 +307,10 @@
                 player.ready(() => {
                     player.play();
                 });
+            } else {
+                videoContainer.style.display = 'none';
+                const player = videojs(videoPlayer);
+                player.pause();
             }
         }
 
