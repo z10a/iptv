@@ -97,74 +97,54 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
     <script>
         let channels = [];
+        let streams = [];
         let currentChannelIndex = 0;
         const itemsPerPage = 100;
 
-        // Fetch the M3U playlist from the URL
-        fetch('https://iptv-org.github.io/iptv/index.m3u')
-            .then(response => response.text())
-            .then(data => {
-                channels = parseM3U(data); // Parse the M3U data to get channel information
-                loadChannels(); // Load the first 100 channels
-            })
-            .catch(error => {
-                console.error('Error fetching playlist:', error);
-                document.getElementById('channel-container').innerHTML = '<p>Failed to load channels. Please try again later.</p>';
-            });
+        // Fetch channels and streams data from IPTV API
+        Promise.all([
+            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()),
+            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json())
+        ])
+        .then(([channelData, streamData]) => {
+            channels = channelData;
+            streams = streamData;
+            loadChannels(); // Load the first 100 channels
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            document.getElementById('channel-container').innerHTML = '<p>Failed to load channels. Please try again later.</p>';
+        });
 
-        // Parse the M3U playlist to extract channel details
-        function parseM3U(data) {
-            const lines = data.split('\n');
-            const parsedChannels = [];
-            let currentChannel = {};
-
-            lines.forEach(line => {
-                if (line.startsWith('#EXTINF:')) {
-                    // Extract channel info from the line
-                    const match = line.match(/tvg-name="([^"]+)"[^,]+,([^,]+)/);
-                    if (match) {
-                        currentChannel = {
-                            name: match[2].trim(),
-                            logo: match[1].trim(),
-                            url: lines[lines.indexOf(line) + 1].trim()
-                        };
-                    }
-                }
-
-                // Add the channel to the list
-                if (currentChannel.url) {
-                    parsedChannels.push(currentChannel);
-                    currentChannel = {};
-                }
-            });
-
-            return parsedChannels;
-        }
-
-        // Load a set of channels (e.g., 100 at a time)
+        // Load channels and their streams
         function loadChannels() {
             const channelContainer = document.getElementById('channel-container');
             const endIndex = Math.min(currentChannelIndex + itemsPerPage, channels.length);
 
             for (let i = currentChannelIndex; i < endIndex; i++) {
                 const channel = channels[i];
-                const channelElement = document.createElement('div');
-                channelElement.classList.add('channel');
-                
-                const channelHtml = `
-                    <img src="${channel.logo}" alt="${channel.name}" />
-                    <h3>${channel.name}</h3>
-                    <a href="javascript:void(0)" onclick="toggleVideo(${i})">Watch Now</a>
-                    <div id="video-container-${i}" class="video-container">
-                        <video id="iptvPlayer-${i}" class="video-js vjs-default-skin" controls preload="auto">
-                            Your browser does not support the video tag.
-                        </video>
-                    </div>
-                `;
-                channelElement.innerHTML = channelHtml;
-                channelContainer.appendChild(channelElement);
+                const stream = streams.find(s => s.channel === channel.id);
+
+                if (stream) {
+                    const channelElement = document.createElement('div');
+                    channelElement.classList.add('channel');
+                    
+                    const channelHtml = `
+                        <img src="${channel.logo}" alt="${channel.name}" />
+                        <h3>${channel.name}</h3>
+                        <a href="javascript:void(0)" onclick="toggleVideo(${i}, '${stream.url}')">Watch Now</a>
+                        <div id="video-container-${i}" class="video-container">
+                            <video id="iptvPlayer-${i}" class="video-js vjs-default-skin" controls preload="auto">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `;
+                    channelElement.innerHTML = channelHtml;
+                    channelContainer.appendChild(channelElement);
+                }
             }
 
             currentChannelIndex = endIndex;
@@ -193,10 +173,9 @@
         }
 
         // Toggle video display and play the selected stream
-        function toggleVideo(index) {
+        function toggleVideo(index, streamUrl) {
             const videoContainer = document.getElementById(`video-container-${index}`);
             const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
-            const currentUrl = channels[index].url;
 
             if (videoContainer.style.display === 'block') {
                 videoContainer.style.display = 'none';
@@ -207,8 +186,8 @@
                 const player = videojs(videoPlayer, {
                     techOrder: ['html5'],
                     sources: [{
-                        src: currentUrl,
-                        type: 'application/x-mpegURL'
+                        src: streamUrl,
+                        type: 'application/x-mpegURL' // Ensure this is an HLS stream type
                     }]
                 });
 
