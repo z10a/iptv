@@ -139,7 +139,7 @@
             color: white;
         }
 
-        /* Sidebar for PC */
+        /* Sidebar Menu for PC */
         .sidebar {
             position: fixed;
             left: 0;
@@ -164,6 +164,23 @@
             background-color: #575757;
         }
 
+        /* Sidebar toggle for mobile */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #0056b3;
+        }
+
         /* Responsive design */
         @media (max-width: 600px) {
             .channel-list {
@@ -172,6 +189,10 @@
 
             .sidebar {
                 display: none;
+            }
+
+            .sidebar-toggle {
+                display: block;
             }
 
             .mode-toggle {
@@ -188,10 +209,25 @@
             .sidebar {
                 display: block;
             }
+
+            .sidebar-toggle {
+                display: none;
+            }
         }
     </style>
 </head>
 <body class="light-mode">
+
+    <!-- Sidebar Menu for PC -->
+    <div id="sidebar" class="sidebar">
+        <a href="#">Home</a>
+        <a href="#">Categories</a>
+        <a href="#">Languages</a>
+        <a href="#">Settings</a>
+    </div>
+
+    <!-- Sidebar Toggle for Mobile -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
 
     <!-- Mode Toggle Button -->
     <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
@@ -279,29 +315,16 @@
             currentChannelIndex = endIndex;
         }
 
-        // Load video player
-        function toggleVideo(index, streamUrl) {
-            const videoContainer = document.querySelectorAll('.video-container')[index];
-            const videoPlayer = videoContainer.querySelector('video');
-            const player = videojs(videoPlayer, {
-                autoplay: true,
-                controls: true,
-                sources: [{
-                    src: streamUrl,
-                    type: 'application/x-mpegURL'
-                }]
-            });
-
-            player.ready(() => {
-                player.play();
-            });
-        }
-
-        // Search channels
+        // Filter channels based on search input
         function filterChannels() {
             const searchTerm = document.getElementById('search-bar').value.toLowerCase();
             filteredChannels = allChannels.filter(channel => channel.name.toLowerCase().includes(searchTerm));
             currentChannelIndex = 0;
+            loadChannels();
+        }
+
+        // Show more channels
+        function loadMoreChannels() {
             loadChannels();
         }
 
@@ -317,6 +340,12 @@
         // Reload the page when "IPTV Channels" is clicked
         function reloadPage() {
             window.location.reload();
+        }
+
+        // Toggle Sidebar visibility (for mobile)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.style.display = sidebar.style.display === 'block' ? 'none' : 'block';
         }
     </script>
 </body>
