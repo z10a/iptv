@@ -69,7 +69,6 @@
         .pagination a:hover {
             background-color: #ddd;
         }
-        /* Styling for the video element */
         .video-container {
             display: none;
             text-align: center;
@@ -87,17 +86,12 @@
 
     <h1>IPTV Channels</h1>
 
-    <!-- Search Bar -->
     <div class="search-container">
         <input type="text" id="search-bar" placeholder="Search Channels" oninput="filterChannels()">
     </div>
 
-    <!-- Channel List -->
-    <div id="channel-container" class="channel-list">
-        <!-- IPTV channels will be listed here -->
-    </div>
+    <div id="channel-container" class="channel-list"></div>
 
-    <!-- Show More Button -->
     <div class="pagination">
         <button id="show-more" onclick="loadMoreChannels()">Show More</button>
     </div>
@@ -108,17 +102,46 @@
         let currentChannelIndex = 0;
         const itemsPerPage = 100;
 
-        // Fetch the channels.json data from the URL
-        fetch('https://iptv-org.github.io/api/channels.json')
-            .then(response => response.json())
+        // Fetch the M3U playlist from the URL
+        fetch('https://iptv-org.github.io/iptv/index.m3u')
+            .then(response => response.text())
             .then(data => {
-                channels = data; // Store the full list of channels
+                channels = parseM3U(data); // Parse the M3U data to get channel information
                 loadChannels(); // Load the first 100 channels
             })
             .catch(error => {
-                console.error('Error fetching channels:', error);
+                console.error('Error fetching playlist:', error);
                 document.getElementById('channel-container').innerHTML = '<p>Failed to load channels. Please try again later.</p>';
             });
+
+        // Parse the M3U playlist to extract channel details
+        function parseM3U(data) {
+            const lines = data.split('\n');
+            const parsedChannels = [];
+            let currentChannel = {};
+
+            lines.forEach(line => {
+                if (line.startsWith('#EXTINF:')) {
+                    // Extract channel info from the line
+                    const match = line.match(/tvg-name="([^"]+)"[^,]+,([^,]+)/);
+                    if (match) {
+                        currentChannel = {
+                            name: match[2].trim(),
+                            logo: match[1].trim(),
+                            url: lines[lines.indexOf(line) + 1].trim()
+                        };
+                    }
+                }
+
+                // Add the channel to the list
+                if (currentChannel.url) {
+                    parsedChannels.push(currentChannel);
+                    currentChannel = {};
+                }
+            });
+
+            return parsedChannels;
+        }
 
         // Load a set of channels (e.g., 100 at a time)
         function loadChannels() {
@@ -130,7 +153,6 @@
                 const channelElement = document.createElement('div');
                 channelElement.classList.add('channel');
                 
-                // Create the channel card
                 const channelHtml = `
                     <img src="${channel.logo}" alt="${channel.name}" />
                     <h3>${channel.name}</h3>
@@ -142,21 +164,17 @@
                     </div>
                 `;
                 channelElement.innerHTML = channelHtml;
-
-                // Append the channel card to the container
                 channelContainer.appendChild(channelElement);
             }
 
-            // Update the current index to load the next set of channels
             currentChannelIndex = endIndex;
 
-            // Hide the "Show More" button if no more channels are available
             if (currentChannelIndex >= channels.length) {
                 document.getElementById('show-more').style.display = 'none';
             }
         }
 
-        // Show more channels when the "Show More" button is clicked
+        // Show more channels
         function loadMoreChannels() {
             loadChannels();
         }
@@ -168,25 +186,22 @@
                 channel.name.toLowerCase().includes(searchTerm)
             );
 
-            // Reset the index and display filtered results
             currentChannelIndex = 0;
             document.getElementById('channel-container').innerHTML = '';
             channels = filteredChannels;
             loadChannels();
         }
 
-        // Toggle the video display and play the selected channel stream
+        // Toggle video display and play the selected stream
         function toggleVideo(index) {
             const videoContainer = document.getElementById(`video-container-${index}`);
             const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
             const currentUrl = channels[index].url;
 
-            // If the video is already visible, hide it
             if (videoContainer.style.display === 'block') {
                 videoContainer.style.display = 'none';
                 videoPlayer.pause();
             } else {
-                // Show the video container and set the source URL
                 videoContainer.style.display = 'block';
 
                 const player = videojs(videoPlayer, {
