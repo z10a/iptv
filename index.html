@@ -79,6 +79,11 @@
             text-align: center;
         }
 
+        /* Gray channel bar in dark mode */
+        body.dark-mode .channel {
+            background-color: #333;
+        }
+
         .channel img {
             max-width: 100%;
             height: auto;
@@ -91,6 +96,10 @@
             font-weight: bold;
         }
 
+        body.dark-mode .channel .channel-name {
+            color: white;
+        }
+
         .channel a {
             display: block;
             margin: 10px 0;
@@ -101,8 +110,16 @@
             border-radius: 5px;
         }
 
+        body.dark-mode .channel a {
+            background-color: #555;
+        }
+
         .channel a:hover {
             background-color: #0056b3;
+        }
+
+        body.dark-mode .channel a:hover {
+            background-color: #333;
         }
 
         .pagination {
@@ -143,7 +160,8 @@
 </head>
 <body class="light-mode">
 
-    <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
+    <!-- Mode Toggle Button with icons -->
+    <button class="mode-toggle" onclick="toggleMode()">🌙 Switch to Dark Mode</button>
 
     <h1>IPTV Channels</h1>
 
@@ -277,20 +295,31 @@
             }
         }
 
-        // Toggle between Light and Dark mode
+        // Toggle between dark and light mode
         function toggleMode() {
             const body = document.body;
             const modeToggleButton = document.querySelector('.mode-toggle');
-
+            
             if (body.classList.contains('light-mode')) {
                 body.classList.remove('light-mode');
                 body.classList.add('dark-mode');
-                modeToggleButton.textContent = "Switch to Light Mode";
+                modeToggleButton.textContent = "🌞 Switch to Light Mode";
+                localStorage.setItem('mode', 'dark'); // Save the mode in localStorage
             } else {
                 body.classList.remove('dark-mode');
                 body.classList.add('light-mode');
-                modeToggleButton.textContent = "Switch to Dark Mode";
+                modeToggleButton.textContent = "🌙 Switch to Dark Mode";
+                localStorage.setItem('mode', 'light'); // Save the mode in localStorage
             }
+        }
+
+        // Check if there's a saved mode in localStorage and apply it
+        const savedMode = localStorage.getItem('mode');
+        if (savedMode) {
+            document.body.classList.remove('light-mode', 'dark-mode');
+            document.body.classList.add(savedMode);
+            const modeToggleButton = document.querySelector('.mode-toggle');
+            modeToggleButton.textContent = savedMode === 'dark' ? "🌞 Switch to Light Mode" : "🌙 Switch to Dark Mode";
         }
 
         // Initial load
