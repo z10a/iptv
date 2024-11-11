@@ -79,11 +79,6 @@
             text-align: center;
         }
 
-        /* Gray channel bar in dark mode */
-        body.dark-mode .channel {
-            background-color: #333;
-        }
-
         .channel img {
             max-width: 100%;
             height: auto;
@@ -96,10 +91,6 @@
             font-weight: bold;
         }
 
-        body.dark-mode .channel .channel-name {
-            color: white;
-        }
-
         .channel a {
             display: block;
             margin: 10px 0;
@@ -110,16 +101,8 @@
             border-radius: 5px;
         }
 
-        body.dark-mode .channel a {
-            background-color: #555;
-        }
-
         .channel a:hover {
             background-color: #0056b3;
-        }
-
-        body.dark-mode .channel a:hover {
-            background-color: #333;
         }
 
         .pagination {
@@ -160,8 +143,7 @@
 </head>
 <body class="light-mode">
 
-    <!-- Mode Toggle Button with icons -->
-    <button class="mode-toggle" onclick="toggleMode()">🌙 Switch to Dark Mode</button>
+    <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
 
     <h1>IPTV Channels</h1>
 
@@ -180,166 +162,119 @@
 
     <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
+
     <script>
-        // Complete channel data with mock data
-        let channels = [
-            {
-                "id": "BBCNews.uk",
-                "name": "BBC News",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BBC_News_2022_logo.svg/800px-BBC_News_2022_logo.svg.png"
-            },
-            {
-                "id": "CNN.us",
-                "name": "CNN",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/c/c9/CNN.svg"
-            },
-            {
-                "id": "AlJazeera.en",
-                "name": "Al Jazeera English",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/5/53/Al_Jazeera_English_logo_2013.svg"
-            },
-            {
-                "id": "FoxNews.us",
-                "name": "Fox News",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Fox_News_2020.svg"
-            },
-            {
-                "id": "NBCNews.us",
-                "name": "NBC News",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/NBC_News.svg/800px-NBC_News.svg.png"
-            },
-            {
-                "id": "SkyNews.uk",
-                "name": "Sky News",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/5/56/Sky_News_logo_2023.png"
-            },
-            {
-                "id": "RTNews.ru",
-                "name": "RT News",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/RT_logo_2020.svg/800px-RT_logo_2020.svg.png"
-            },
-            {
-                "id": "Euronews.en",
-                "name": "Euronews",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Euronews_logo_2022.svg/800px-Euronews_logo_2022.svg.png"
-            },
-            {
-                "id": "France24.fr",
-                "name": "France 24",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/f/fb/France_24_logo_2018.svg"
-            },
-            {
-                "id": "AlArabiya.tv",
-                "name": "Al Arabiya",
-                "logo": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Al_Arabiya_Logo_2014.svg"
-            }
-        ];
-
-        // Sample stream data
-        let streams = [
-            {
-                "channel": "BBCNews.uk",
-                "url": "https://bbc.co.uk/stream.m3u8"
-            },
-            {
-                "channel": "CNN.us",
-                "url": "https://cnn.com/stream.m3u8"
-            },
-            {
-                "channel": "AlJazeera.en",
-                "url": "https://aljazeera.com/stream.m3u8"
-            },
-            {
-                "channel": "FoxNews.us",
-                "url": "https://foxnews.com/stream.m3u8"
-            },
-            {
-                "channel": "NBCNews.us",
-                "url": "https://nbcnews.com/stream.m3u8"
-            },
-            {
-                "channel": "SkyNews.uk",
-                "url": "https://skynews.com/stream.m3u8"
-            },
-            {
-                "channel": "RTNews.ru",
-                "url": "https://rt.com/stream.m3u8"
-            },
-            {
-                "channel": "Euronews.en",
-                "url": "https://euronews.com/stream.m3u8"
-            },
-            {
-                "channel": "France24.fr",
-                "url": "https://france24.com/stream.m3u8"
-            },
-            {
-                "channel": "AlArabiya.tv",
-                "url": "https://alarabiya.com/stream.m3u8"
-            }
-        ];
-
-        let filteredChannels = channels;
+        let allChannels = [];
+        let filteredChannels = [];
+        let streams = [];
         let currentChannelIndex = 0;
+        const itemsPerPage = 100;
 
-        // Function to load and display channels
+        // Fetch channel and stream data
+        Promise.all([
+            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()),
+            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json())
+        ])
+        .then(([channelData, streamData]) => {
+            allChannels = channelData;
+            streams = streamData;
+            filteredChannels = allChannels;
+            loadChannels();  // Load initial channels
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            document.getElementById('channel-container').innerHTML = '<p>Failed to load channels. Please try again later.</p>';
+        });
+
+        // Load channels into the page
         function loadChannels() {
-            const container = document.getElementById("channel-container");
-            container.innerHTML = "";  // Clear previous channels
-            const pageChannels = filteredChannels.slice(currentChannelIndex, currentChannelIndex + 5);
-            pageChannels.forEach(channel => {
-                const channelElement = document.createElement("div");
-                channelElement.className = "channel";
-                channelElement.innerHTML = `
-                    <img src="${channel.logo}" alt="${channel.name} logo">
-                    <div class="channel-name">${channel.name}</div>
-                    <a href="javascript:void(0);" onclick="playStream('${channel.id}')">Watch Now</a>
-                `;
-                container.appendChild(channelElement);
-            });
-            currentChannelIndex += 5;
+            const channelContainer = document.getElementById('channel-container');
+            const endIndex = Math.min(currentChannelIndex + itemsPerPage, filteredChannels.length);
+
+            for (let i = currentChannelIndex; i < endIndex; i++) {
+                const channel = filteredChannels[i];
+                const stream = streams.find(s => s.channel === channel.id);
+
+                if (stream) {
+                    const channelElement = document.createElement('div');
+                    channelElement.classList.add('channel');
+                    channelElement.innerHTML = `
+                        <img src="${channel.logo}" alt="${channel.name}" />
+                        <div class="channel-name">${channel.name}</div>
+                        <a href="javascript:void(0)" onclick="toggleVideo(${i}, '${stream.url}')">Watch Now</a>
+                        <div id="video-container-${i}" class="video-container">
+                            <video id="iptvPlayer-${i}" class="video-js vjs-default-skin" controls>
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `;
+                    channelContainer.appendChild(channelElement);
+                }
+            }
+
+            currentChannelIndex = endIndex;
+
+            if (currentChannelIndex >= filteredChannels.length) {
+                document.getElementById('show-more').style.display = 'none';
+            }
         }
 
-        // Load more channels on "Show More" button click
+        // Show more channels
         function loadMoreChannels() {
             loadChannels();
         }
 
         // Filter channels based on search input
         function filterChannels() {
-            const searchQuery = document.getElementById("search-bar").value.toLowerCase();
-            filteredChannels = channels.filter(channel =>
-                channel.name.toLowerCase().includes(searchQuery)
+            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+            filteredChannels = allChannels.filter(channel =>
+                channel.name.toLowerCase().includes(searchTerm)
             );
+
             currentChannelIndex = 0;
+            document.getElementById('channel-container').innerHTML = '';
             loadChannels();
         }
 
-        // Play stream in video player
-        function playStream(channelId) {
-            const stream = streams.find(s => s.channel === channelId);
-            if (stream) {
-                const videoPlayer = document.createElement("video");
-                videoPlayer.className = "video-container";
-                videoPlayer.id = "video-player";
-                videoPlayer.src = stream.url;
-                videoPlayer.setAttribute("controls", "true");
-                document.body.appendChild(videoPlayer);
-                videoPlayer.style.display = "block";
-                videoPlayer.play();
+        // Toggle video display and play the selected stream
+        function toggleVideo(index, streamUrl) {
+            const videoContainer = document.getElementById(`video-container-${index}`);
+            const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
+
+            if (videoContainer.style.display === 'block') {
+                videoContainer.style.display = 'none';
+                videoPlayer.pause();
+            } else {
+                videoContainer.style.display = 'block';
+
+                const player = videojs(videoPlayer, {
+                    techOrder: ['html5'],
+                    sources: [{
+                        src: streamUrl,
+                        type: 'application/x-mpegURL' // HLS stream type
+                    }]
+                });
+
+                player.play();
             }
         }
 
-        // Toggle between light and dark mode
+        // Toggle between Light and Dark mode
         function toggleMode() {
             const body = document.body;
-            body.classList.toggle('dark-mode');
-            const button = document.querySelector('.mode-toggle');
-            button.textContent = body.classList.contains('dark-mode') ? '🌞 Switch to Light Mode' : '🌙 Switch to Dark Mode';
-        }
+            const modeToggleButton = document.querySelector('.mode-toggle');
 
-        // Initial load of channels
-        loadChannels();
+            if (body.classList.contains('light-mode')) {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                modeToggleButton.textContent = "Switch to Light Mode";
+            } else {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                modeToggleButton.textContent = "Switch to Dark Mode";
+            }
+        }
     </script>
+
 </body>
 </html>
