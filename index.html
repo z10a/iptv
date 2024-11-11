@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPTV Channels</title>
     <link href="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video-js.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         /* Basic styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            transition: background-color 0.3s, color 0.3s;
             display: flex;
             min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* Sidebar styles */
@@ -29,6 +30,12 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: width 0.3s;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            padding: 0;
         }
 
         .sidebar h2 {
@@ -59,6 +66,10 @@
             transition: margin-left 0.3s;
         }
 
+        .main-content.sidebar-collapsed {
+            margin-left: 0;
+        }
+
         /* Light and Dark mode */
         body.light-mode {
             background-color: #fafafa;
@@ -78,28 +89,37 @@
             border-radius: 5px;
             cursor: pointer;
             text-align: center;
+            font-size: 24px;
+            display: inline-block;
+            transition: background-color 0.3s;
         }
 
         .mode-toggle:hover {
             background-color: #0056b3;
         }
 
-        .search-container {
-            display: flex;
-            justify-content: center;
-            margin: 20px;
+        .mode-toggle i {
+            transition: transform 0.3s;
         }
 
-        .search-container input {
-            padding: 12px;
+        /* Channel Bar */
+        .channel-bar {
+            background-color: #f4f4f4;
+            color: #333;
+            padding: 15px;
             font-size: 18px;
-            width: 80%;
-            max-width: 600px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            background-color: #fff;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, color 0.3s;
         }
 
+        .channel-bar.gray {
+            background-color: #555;
+            color: white;
+        }
+
+        /* Channel list grid */
         .channel-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -179,23 +199,31 @@
 </head>
 <body class="light-mode">
 
+    <!-- Sidebar with toggle -->
     <div class="sidebar">
-        <h2>IPTV</h2>
+        <button class="mode-toggle" onclick="toggleMode()">
+            <i class="fas fa-sun" id="mode-icon"></i>
+        </button>
+
+        <h2>IPTV Channels</h2>
+
         <nav>
-            <a href="javascript:void(0)" onclick="toggleMode()">Toggle Dark Mode</a>
-            <a href="javascript:void(0)">Home</a>
+            <a href="javascript:void(0)" onclick="toggleSidebar()">☰ Menu</a>
             <a href="javascript:void(0)">Channels</a>
             <a href="javascript:void(0)">Settings</a>
         </nav>
-        <div class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</div>
     </div>
 
+    <!-- Main content -->
     <div class="main-content">
-        <h1>IPTV Channels</h1>
-
         <!-- Search Bar -->
         <div class="search-container">
             <input type="text" id="search-bar" placeholder="Search Channels" oninput="filterChannels()">
+        </div>
+
+        <!-- Channel Bar -->
+        <div id="channel-bar" class="channel-bar">
+            Channel List
         </div>
 
         <!-- Channel List -->
@@ -245,81 +273,76 @@
                 if (stream) {
                     const channelElement = document.createElement('div');
                     channelElement.classList.add('channel');
-                    channelElement.innerHTML = `
-                        <img src="${channel.logo}" alt="${channel.name}" />
+                    channelElement.innerHTML = 
+                        `<img src="${channel.logo}" alt="${channel.name}" />
                         <div class="channel-name">${channel.name}</div>
                         <a href="javascript:void(0)" onclick="toggleVideo(${i}, '${stream.url}')">Watch Now</a>
                         <div id="video-container-${i}" class="video-container">
                             <video id="iptvPlayer-${i}" class="video-js vjs-default-skin" controls>
                                 Your browser does not support the video tag.
                             </video>
-                        </div>
-                    `;
+                        </div>`;
                     channelContainer.appendChild(channelElement);
                 }
             }
 
             currentChannelIndex = endIndex;
-
             if (currentChannelIndex >= filteredChannels.length) {
-                document.getElementById('show-more').style.display = 'none';
+                document.getElementById('show-more').disabled = true;
             }
         }
 
-        // Show more channels
+        // Load more channels when clicked
         function loadMoreChannels() {
             loadChannels();
         }
 
-        // Filter channels based on search input
+        // Filter channels by search input
         function filterChannels() {
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
-            filteredChannels = allChannels.filter(channel =>
-                channel.name.toLowerCase().includes(searchTerm)
-            );
-
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            filteredChannels = allChannels.filter(channel => channel.name.toLowerCase().includes(query));
             currentChannelIndex = 0;
+            document.getElementById('show-more').disabled = false;
             document.getElementById('channel-container').innerHTML = '';
             loadChannels();
         }
 
-        // Toggle video display and play the selected stream
-        function toggleVideo(index, streamUrl) {
+        // Toggle video visibility
+        function toggleVideo(index, url) {
             const videoContainer = document.getElementById(`video-container-${index}`);
-            const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
-
-            if (videoContainer.style.display === 'block') {
-                videoContainer.style.display = 'none';
-                videoPlayer.pause();
-            } else {
+            const videoElement = document.getElementById(`iptvPlayer-${index}`);
+            if (videoContainer.style.display === 'none') {
                 videoContainer.style.display = 'block';
-
-                const player = videojs(videoPlayer, {
-                    techOrder: ['html5'],
-                    sources: [{
-                        src: streamUrl,
-                        type: 'application/x-mpegURL' // HLS stream type
-                    }]
-                });
-
-                player.play();
+                videoElement.src = url;
+                videojs(videoElement);
+            } else {
+                videoContainer.style.display = 'none';
             }
         }
 
-        // Toggle between Light and Dark mode
+        // Toggle dark and light mode
         function toggleMode() {
             const body = document.body;
-            const modeToggleButton = document.querySelector('.mode-toggle');
-
-            if (body.classList.contains('light-mode')) {
-                body.classList.remove('light-mode');
-                body.classList.add('dark-mode');
-                modeToggleButton.textContent = "Switch to Light Mode";
+            body.classList.toggle('dark-mode');
+            body.classList.toggle('light-mode');
+            const icon = document.getElementById('mode-icon');
+            if (body.classList.contains('dark-mode')) {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                document.getElementById('channel-bar').classList.add('gray');
             } else {
-                body.classList.remove('dark-mode');
-                body.classList.add('light-mode');
-                modeToggleButton.textContent = "Switch to Dark Mode";
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                document.getElementById('channel-bar').classList.remove('gray');
             }
+        }
+
+        // Toggle sidebar visibility
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed');
         }
     </script>
 
