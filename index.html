@@ -181,7 +181,7 @@
     <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
     <script>
-        // Sample channel data (mock data)
+        // Complete channel data with mock data
         let channels = [
             {
                 "id": "BBCNews.uk",
@@ -197,10 +197,45 @@
                 "id": "AlJazeera.en",
                 "name": "Al Jazeera English",
                 "logo": "https://upload.wikimedia.org/wikipedia/commons/5/53/Al_Jazeera_English_logo_2013.svg"
+            },
+            {
+                "id": "FoxNews.us",
+                "name": "Fox News",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Fox_News_2020.svg"
+            },
+            {
+                "id": "NBCNews.us",
+                "name": "NBC News",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/NBC_News.svg/800px-NBC_News.svg.png"
+            },
+            {
+                "id": "SkyNews.uk",
+                "name": "Sky News",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/5/56/Sky_News_logo_2023.png"
+            },
+            {
+                "id": "RTNews.ru",
+                "name": "RT News",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/RT_logo_2020.svg/800px-RT_logo_2020.svg.png"
+            },
+            {
+                "id": "Euronews.en",
+                "name": "Euronews",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Euronews_logo_2022.svg/800px-Euronews_logo_2022.svg.png"
+            },
+            {
+                "id": "France24.fr",
+                "name": "France 24",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/f/fb/France_24_logo_2018.svg"
+            },
+            {
+                "id": "AlArabiya.tv",
+                "name": "Al Arabiya",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Al_Arabiya_Logo_2014.svg"
             }
         ];
 
-        // Sample stream data (mock data)
+        // Sample stream data
         let streams = [
             {
                 "channel": "BBCNews.uk",
@@ -213,87 +248,89 @@
             {
                 "channel": "AlJazeera.en",
                 "url": "https://aljazeera.com/stream.m3u8"
+            },
+            {
+                "channel": "FoxNews.us",
+                "url": "https://foxnews.com/stream.m3u8"
+            },
+            {
+                "channel": "NBCNews.us",
+                "url": "https://nbcnews.com/stream.m3u8"
+            },
+            {
+                "channel": "SkyNews.uk",
+                "url": "https://skynews.com/stream.m3u8"
+            },
+            {
+                "channel": "RTNews.ru",
+                "url": "https://rt.com/stream.m3u8"
+            },
+            {
+                "channel": "Euronews.en",
+                "url": "https://euronews.com/stream.m3u8"
+            },
+            {
+                "channel": "France24.fr",
+                "url": "https://france24.com/stream.m3u8"
+            },
+            {
+                "channel": "AlArabiya.tv",
+                "url": "https://alarabiya.com/stream.m3u8"
             }
         ];
 
         let filteredChannels = channels;
         let currentChannelIndex = 0;
-        const itemsPerPage = 100;
 
-        // Load channels into the page
+        // Function to load and display channels
         function loadChannels() {
-            const channelContainer = document.getElementById('channel-container');
-            const endIndex = Math.min(currentChannelIndex + itemsPerPage, filteredChannels.length);
-
-            for (let i = currentChannelIndex; i < endIndex; i++) {
-                const channel = filteredChannels[i];
-                const stream = streams.find(s => s.channel === channel.id);
-
-                if (stream) {
-                    const channelElement = document.createElement('div');
-                    channelElement.classList.add('channel');
-                    channelElement.innerHTML = `
-                        <img src="${channel.logo}" alt="${channel.name}" />
-                        <div class="channel-name">${channel.name}</div>
-                        <a href="javascript:void(0)" onclick="toggleVideo(${i}, '${stream.url}')">Watch Now</a>
-                        <div id="video-container-${i}" class="video-container">
-                            <video id="iptvPlayer-${i}" class="video-js vjs-default-skin" controls>
-                                Your browser does not support the video tag.
-                            </video>
-                        </div>
-                    `;
-                    channelContainer.appendChild(channelElement);
-                }
-            }
-
-            currentChannelIndex = endIndex;
-
-            if (currentChannelIndex >= filteredChannels.length) {
-                document.getElementById('show-more').style.display = 'none';
-            }
+            const container = document.getElementById("channel-container");
+            container.innerHTML = "";  // Clear previous channels
+            const pageChannels = filteredChannels.slice(currentChannelIndex, currentChannelIndex + 5);
+            pageChannels.forEach(channel => {
+                const channelElement = document.createElement("div");
+                channelElement.className = "channel";
+                channelElement.innerHTML = `
+                    <img src="${channel.logo}" alt="${channel.name} logo">
+                    <div class="channel-name">${channel.name}</div>
+                    <a href="javascript:void(0);" onclick="playStream('${channel.id}')">Watch Now</a>
+                `;
+                container.appendChild(channelElement);
+            });
+            currentChannelIndex += 5;
         }
 
-        // Show more channels
+        // Load more channels on "Show More" button click
         function loadMoreChannels() {
             loadChannels();
         }
 
         // Filter channels based on search input
         function filterChannels() {
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+            const searchQuery = document.getElementById("search-bar").value.toLowerCase();
             filteredChannels = channels.filter(channel =>
-                channel.name.toLowerCase().includes(searchTerm)
+                channel.name.toLowerCase().includes(searchQuery)
             );
-
             currentChannelIndex = 0;
-            document.getElementById('channel-container').innerHTML = '';
             loadChannels();
         }
 
-        // Toggle video display and play the selected stream
-        function toggleVideo(index, streamUrl) {
-            const videoContainer = document.getElementById(`video-container-${index}`);
-            const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
-
-            if (videoContainer.style.display === 'block') {
-                videoContainer.style.display = 'none';
-                videoPlayer.pause();
-            } else {
-                videoContainer.style.display = 'block';
-
-                const player = videojs(videoPlayer, {
-                    techOrder: ['html5'],
-                    sources: [{
-                        src: streamUrl,
-                        type: 'application/x-mpegURL' // HLS stream type
-                    }]
-                });
-
-                player.play();
+        // Play stream in video player
+        function playStream(channelId) {
+            const stream = streams.find(s => s.channel === channelId);
+            if (stream) {
+                const videoPlayer = document.createElement("video");
+                videoPlayer.className = "video-container";
+                videoPlayer.id = "video-player";
+                videoPlayer.src = stream.url;
+                videoPlayer.setAttribute("controls", "true");
+                document.body.appendChild(videoPlayer);
+                videoPlayer.style.display = "block";
+                videoPlayer.play();
             }
         }
 
-        // Toggle between dark and light mode
+        // Toggle between light and dark mode
         function toggleMode() {
             const body = document.body;
             body.classList.toggle('dark-mode');
