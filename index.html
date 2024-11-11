@@ -36,13 +36,14 @@
             justify-content: center;
             margin: 20px;
         }
+        
         .video-js .vjs-tech {
-    min-inline-size: fit-content;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
+            min-inline-size: fit-content;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
 
         .search-container input {
             padding: 12px;
@@ -178,8 +179,8 @@
         const itemsPerPage = 100;
 
         // Fetch channel and stream data
-        Promise.all([
-            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()),
+        Promise.all([ 
+            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()), 
             fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json())
         ])
         .then(([channelData, streamData]) => {
@@ -248,6 +249,14 @@
             const videoContainer = document.getElementById(`video-container-${index}`);
             const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
 
+            // Hide all video containers and stop all playing videos
+            const allVideoContainers = document.querySelectorAll('.video-container');
+            allVideoContainers.forEach(container => {
+                container.style.display = 'none';
+                const video = container.querySelector('video');
+                if (video) video.pause();
+            });
+
             if (videoContainer.style.display === 'block') {
                 videoContainer.style.display = 'none';
                 videoPlayer.pause();
@@ -262,24 +271,19 @@
                     }]
                 });
 
-                player.play();
+                player.ready(() => {
+                    player.play();
+                });
             }
         }
 
-        // Toggle between Light and Dark mode
+        // Toggle between dark and light mode
         function toggleMode() {
             const body = document.body;
-            const modeToggleButton = document.querySelector('.mode-toggle');
-
-            if (body.classList.contains('light-mode')) {
-                body.classList.remove('light-mode');
-                body.classList.add('dark-mode');
-                modeToggleButton.textContent = "Switch to Light Mode";
-            } else {
-                body.classList.remove('dark-mode');
-                body.classList.add('light-mode');
-                modeToggleButton.textContent = "Switch to Dark Mode";
-            }
+            const isDarkMode = body.classList.contains('dark-mode');
+            body.classList.toggle('dark-mode', !isDarkMode);
+            body.classList.toggle('light-mode', isDarkMode);
+            document.querySelector('.mode-toggle').textContent = isDarkMode ? 'Switch to Dark Mode' : 'Switch to Light Mode';
         }
     </script>
 
