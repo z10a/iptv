@@ -6,7 +6,6 @@
     <title>IPTV Channels</title>
     <link href="https://unpkg.com/video.js@7.14.3/dist/video-js.css" rel="stylesheet">
     <style>
-        /* Basic Reset and Styling */
         * {
             margin: 0;
             padding: 0;
@@ -134,22 +133,14 @@
     </div>
 
     <!-- Channel List -->
-    <div class="channel-container">
-        <!-- Example Channel -->
-        <div class="channel" data-name="BBC News">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a1/BBC_News_Logo_2020.svg" alt="BBC News">
-            <div class="channel-name">BBC News</div>
-            <button onclick="watchChannel('https://path/to/video.m3u8')">Watch Now</button>
-        </div>
-        <!-- Add more channels here -->
+    <div class="channel-container" id="channels-list">
+        <!-- Channels will be populated here -->
     </div>
 
     <!-- Video Container -->
-    <div class="video-container">
+    <div class="video-container" id="video-container">
         <video id="iptvPlayer" class="video-js vjs-default-skin" controls>
-            <source src="https://path/to/video_low.m3u8" type="application/x-mpegURL">
-            <source src="https://path/to/video_medium.m3u8" type="application/x-mpegURL">
-            <source src="https://path/to/video_high.m3u8" type="application/x-mpegURL">
+            <source src="" type="application/x-mpegURL">
             <p>Your browser does not support the video tag.</p>
         </video>
     </div>
@@ -159,30 +150,44 @@
     <script src="https://cdn.jsdelivr.net/npm/videojs-quality-levels@0.1.0/dist/videojs-quality-levels.min.js"></script>
 
     <script>
+        // Load channels from the API and display them
+        async function loadChannels() {
+            const response = await fetch('https://iptv-org.github.io/api/channels.json');
+            const channels = await response.json();
+            const channelsList = document.getElementById('channels-list');
+
+            channels.forEach(channel => {
+                // Create a channel card for each item
+                const channelDiv = document.createElement('div');
+                channelDiv.classList.add('channel');
+                channelDiv.setAttribute('data-name', channel.name);
+                channelDiv.innerHTML = `
+                    <img src="${channel.logo}" alt="${channel.name}">
+                    <div class="channel-name">${channel.name}</div>
+                    <button onclick="watchChannel('${channel.id}')">Watch Now</button>
+                `;
+                channelsList.appendChild(channelDiv);
+            });
+        }
+
         // Video.js Player Initialization
         var player = videojs('iptvPlayer', {
             techOrder: ["html5"]
         });
 
-        // Add quality levels to the player
-        player.ready(function() {
-            var qualityLevels = player.qualityLevels();
+        // Function to play the selected channel
+        async function watchChannel(channelId) {
+            const streamsResponse = await fetch('https://iptv-org.github.io/api/streams.json');
+            const streams = await streamsResponse.json();
+            const stream = streams.find(stream => stream.channel === channelId);
 
-            qualityLevels.on('change', function() {
-                var quality = qualityLevels.selectedIndex();
-                console.log("Selected quality: " + quality);
-            });
-
-            // Quality levels configuration
-            player.src([
-                { type: 'application/x-mpegURL', src: 'https://path/to/video_low.m3u8', label: 'Low' },
-                { type: 'application/x-mpegURL', src: 'https://path/to/video_medium.m3u8', label: 'Medium' },
-                { type: 'application/x-mpegURL', src: 'https://path/to/video_high.m3u8', label: 'High' }
-            ]);
-
-            // Enable quality level selector
-            player.qualityLevels();
-        });
+            if (stream) {
+                const videoPlayer = document.getElementById('iptvPlayer');
+                videoPlayer.src = stream.url;
+                videoPlayer.load();
+                videoPlayer.play();
+            }
+        }
 
         // Dark/Light Mode Toggle
         function toggleDarkMode() {
@@ -210,13 +215,8 @@
             });
         }
 
-        // Watch Channel - Set Video Source
-        function watchChannel(videoUrl) {
-            const videoPlayer = document.getElementById('iptvPlayer');
-            videoPlayer.src = videoUrl;
-            videoPlayer.load();
-            videoPlayer.play();
-        }
+        // Call the loadChannels function to populate the channels
+        loadChannels();
     </script>
 </body>
 </html>
