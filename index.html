@@ -106,13 +106,21 @@
 
         // Fetch channels and streams data from IPTV API
         Promise.all([
-            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()),
-            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json())
+            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()).catch(error => console.error('Error fetching channels:', error)),
+            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json()).catch(error => console.error('Error fetching streams:', error))
         ])
         .then(([channelData, streamData]) => {
+            console.log('Fetched channel data:', channelData);
+            console.log('Fetched stream data:', streamData);
+
             channels = channelData;
             streams = streamData;
-            loadChannels(); // Load the first 100 channels
+
+            if (channels.length > 0) {
+                loadChannels(); // Load the first 100 channels
+            } else {
+                document.getElementById('channel-container').innerHTML = '<p>No channels available.</p>';
+            }
         })
         .catch(error => {
             console.error('Error fetching data:', error);
@@ -144,6 +152,8 @@
                     `;
                     channelElement.innerHTML = channelHtml;
                     channelContainer.appendChild(channelElement);
+                } else {
+                    console.warn(`No stream found for channel: ${channel.name}`);
                 }
             }
 
