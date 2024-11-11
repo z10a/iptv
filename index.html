@@ -46,7 +46,8 @@
     <script>
         async function fetchChannels() {
             try {
-                const response = await fetch('https://cors-anywhere.herokuapp.com/https://raw.githubusercontent.com/iptv-org/api/master/channels.json');
+                // Direct link to the raw JSON file from GitHub
+                const response = await fetch('https://raw.githubusercontent.com/iptv-org/api/master/channels.json');
                 const channels = await response.json();
                 displayChannels(channels);
             } catch (error) {
