@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPTV Channels</title>
+    <link href="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video-js.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,6 +15,17 @@
         h1 {
             text-align: center;
             margin-top: 20px;
+        }
+        .search-container {
+            text-align: center;
+            margin: 20px;
+        }
+        .search-container input {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
         .channel-list {
             display: flex;
@@ -44,44 +56,133 @@
         .channel a:hover {
             text-decoration: underline;
         }
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            margin: 5px;
+            padding: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .pagination a:hover {
+            background-color: #ddd;
+        }
     </style>
 </head>
 <body>
 
     <h1>IPTV Channels</h1>
 
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" id="search-bar" placeholder="Search Channels" oninput="filterChannels()">
+    </div>
+
+    <!-- Channel List -->
     <div id="channel-container" class="channel-list">
         <!-- IPTV channels will be listed here -->
     </div>
 
+    <!-- Show More Button -->
+    <div class="pagination">
+        <button id="show-more" onclick="loadMoreChannels()">Show More</button>
+    </div>
+
+    <!-- Video.js player (hidden initially) -->
+    <div id="video-player-container" style="display:none; text-align:center; padding:20px;">
+        <h2>Now Playing</h2>
+        <video id="iptvPlayer" class="video-js vjs-default-skin" controls preload="auto" style="max-width: 100%;">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
     <script>
+        let channels = [];
+        let currentChannelIndex = 0;
+        const itemsPerPage = 100;
+
         // Fetch the channels.json data from the URL
         fetch('https://iptv-org.github.io/api/channels.json')
             .then(response => response.json())
             .then(data => {
-                const channelContainer = document.getElementById('channel-container');
-                
-                // Loop through the channels and create a card for each one
-                data.forEach(channel => {
-                    const channelElement = document.createElement('div');
-                    channelElement.classList.add('channel');
-                    
-                    // Create the channel card
-                    const channelHtml = `
-                        <img src="${channel.logo}" alt="${channel.name}" />
-                        <h3>${channel.name}</h3>
-                        <a href="${channel.url}" target="_blank">Watch Now</a>
-                    `;
-                    channelElement.innerHTML = channelHtml;
-
-                    // Append the channel card to the container
-                    channelContainer.appendChild(channelElement);
-                });
+                channels = data; // Store the full list of channels
+                loadChannels(); // Load the first 100 channels
             })
             .catch(error => {
                 console.error('Error fetching channels:', error);
                 document.getElementById('channel-container').innerHTML = '<p>Failed to load channels. Please try again later.</p>';
             });
+
+        // Load a set of channels (e.g., 100 at a time)
+        function loadChannels() {
+            const channelContainer = document.getElementById('channel-container');
+            const endIndex = Math.min(currentChannelIndex + itemsPerPage, channels.length);
+
+            for (let i = currentChannelIndex; i < endIndex; i++) {
+                const channel = channels[i];
+                const channelElement = document.createElement('div');
+                channelElement.classList.add('channel');
+                
+                // Create the channel card
+                const channelHtml = `
+                    <img src="${channel.logo}" alt="${channel.name}" />
+                    <h3>${channel.name}</h3>
+                    <a href="javascript:void(0)" onclick="playChannel('${channel.url}')">Watch Now</a>
+                `;
+                channelElement.innerHTML = channelHtml;
+
+                // Append the channel card to the container
+                channelContainer.appendChild(channelElement);
+            }
+
+            // Update the current index to load the next set of channels
+            currentChannelIndex = endIndex;
+
+            // Hide the "Show More" button if no more channels are available
+            if (currentChannelIndex >= channels.length) {
+                document.getElementById('show-more').style.display = 'none';
+            }
+        }
+
+        // Show more channels when the "Show More" button is clicked
+        function loadMoreChannels() {
+            loadChannels();
+        }
+
+        // Filter channels based on search input
+        function filterChannels() {
+            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+            const filteredChannels = channels.filter(channel => 
+                channel.name.toLowerCase().includes(searchTerm)
+            );
+
+            // Reset the index and display filtered results
+            currentChannelIndex = 0;
+            document.getElementById('channel-container').innerHTML = '';
+            channels = filteredChannels;
+            loadChannels();
+        }
+
+        // Play the selected channel in the Video.js player
+        function playChannel(streamUrl) {
+            // Show the video player
+            document.getElementById('video-player-container').style.display = 'block';
+            
+            // Set the stream URL in the video player
+            const player = videojs('iptvPlayer', {
+                techOrder: ['html5'],
+                sources: [{
+                    src: streamUrl,
+                    type: 'application/x-mpegURL'
+                }]
+            });
+
+            // Play the stream
+            player.play();
+        }
     </script>
 
 </body>
