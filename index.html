@@ -77,6 +77,7 @@
         .video-container video {
             width: 100%;
             max-width: 400px;
+            height: auto;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
@@ -99,10 +100,12 @@
     <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
     <script>
-        let channels = [];
+        let allChannels = [];
+        let filteredChannels = [];
         let streams = [];
         let currentChannelIndex = 0;
         const itemsPerPage = 100;
+        let currentPlayingVideo = null;
 
         // Fetch channels and streams data from IPTV API
         Promise.all([
@@ -113,10 +116,11 @@
             console.log('Fetched channel data:', channelData);
             console.log('Fetched stream data:', streamData);
 
-            channels = channelData;
+            allChannels = channelData;
             streams = streamData;
+            filteredChannels = allChannels;
 
-            if (channels.length > 0) {
+            if (allChannels.length > 0) {
                 loadChannels(); // Load the first 100 channels
             } else {
                 document.getElementById('channel-container').innerHTML = '<p>No channels available.</p>';
@@ -130,10 +134,10 @@
         // Load channels and their streams
         function loadChannels() {
             const channelContainer = document.getElementById('channel-container');
-            const endIndex = Math.min(currentChannelIndex + itemsPerPage, channels.length);
+            const endIndex = Math.min(currentChannelIndex + itemsPerPage, filteredChannels.length);
 
             for (let i = currentChannelIndex; i < endIndex; i++) {
-                const channel = channels[i];
+                const channel = filteredChannels[i];
                 const stream = streams.find(s => s.channel === channel.id);
 
                 if (stream) {
@@ -159,7 +163,7 @@
 
             currentChannelIndex = endIndex;
 
-            if (currentChannelIndex >= channels.length) {
+            if (currentChannelIndex >= filteredChannels.length) {
                 document.getElementById('show-more').style.display = 'none';
             }
         }
@@ -172,24 +176,42 @@
         // Filter channels based on search input
         function filterChannels() {
             const searchTerm = document.getElementById('search-bar').value.toLowerCase();
-            const filteredChannels = channels.filter(channel => 
+            filteredChannels = allChannels.filter(channel => 
                 channel.name.toLowerCase().includes(searchTerm)
             );
 
             currentChannelIndex = 0;
             document.getElementById('channel-container').innerHTML = '';
-            channels = filteredChannels;
             loadChannels();
         }
 
+        // Reset to show all channels when search is cleared
+        document.getElementById('search-bar').addEventListener('input', function() {
+            if (this.value === '') {
+                filteredChannels = allChannels;
+                currentChannelIndex = 0;
+                document.getElementById('channel-container').innerHTML = '';
+                loadChannels();
+            }
+        });
+
         // Toggle video display and play the selected stream
         function toggleVideo(index, streamUrl) {
+            // Close previously opened video if one is playing
+            if (currentPlayingVideo !== null) {
+                const prevVideoContainer = document.getElementById(`video-container-${currentPlayingVideo}`);
+                const prevVideoPlayer = document.getElementById(`iptvPlayer-${currentPlayingVideo}`);
+                prevVideoContainer.style.display = 'none';
+                prevVideoPlayer.pause();
+            }
+
             const videoContainer = document.getElementById(`video-container-${index}`);
             const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
 
             if (videoContainer.style.display === 'block') {
                 videoContainer.style.display = 'none';
                 videoPlayer.pause();
+                currentPlayingVideo = null;
             } else {
                 videoContainer.style.display = 'block';
 
@@ -202,6 +224,7 @@
                 });
 
                 player.play();
+                currentPlayingVideo = index;
             }
         }
     </script>
