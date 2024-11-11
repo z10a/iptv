@@ -217,14 +217,6 @@
     <!-- Mode Toggle Button -->
     <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
 
-    <!-- Sidebar for PC -->
-    <div class="sidebar" id="sidebar">
-        <a href="#" onclick="filterByCategory('All')">All Channels</a>
-        <a href="#" onclick="filterByCategory('Sports')">Sports</a>
-        <a href="#" onclick="filterByCategory('Movies')">Movies</a>
-        <!-- More categories can be added dynamically here -->
-    </div>
-
     <h1 onclick="reloadPage()">IPTV Channels</h1> <!-- Reload Page -->
 
     <!-- Search Bar -->
@@ -247,7 +239,6 @@
         let allChannels = [];
         let filteredChannels = [];
         let streams = [];
-        let categories = [];
         let currentChannelIndex = 0;
         const itemsPerPage = 100;
 
@@ -261,25 +252,11 @@
             streams = streamData;
             filteredChannels = allChannels;
             loadChannels();  // Load initial channels
-            loadCategories();
         })
         .catch(error => {
             console.error('Error fetching data:', error);
             document.getElementById('channel-container').innerHTML = '<p>Failed to load channels. Please try again later.</p>';
         });
-
-        // Load categories from API
-        function loadCategories() {
-            categories = ["Sports", "Movies", "News", "Music"]; // Placeholder categories
-            const sidebar = document.getElementById('sidebar');
-            categories.forEach(category => {
-                const link = document.createElement('a');
-                link.href = "#";
-                link.textContent = category;
-                link.onclick = () => filterByCategory(category);
-                sidebar.appendChild(link);
-            });
-        }
 
         // Load channels into the page
         function loadChannels() {
@@ -355,13 +332,6 @@
                 const player = videojs(videoPlayer);
                 player.pause();
             }
-        }
-
-        // Filter channels by category
-        function filterByCategory(category) {
-            filteredChannels = category === 'All' ? allChannels : allChannels.filter(channel => channel.category === category);
-            currentChannelIndex = 0;
-            loadChannels();
         }
 
         // Search channels
