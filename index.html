@@ -6,12 +6,24 @@
     <title>IPTV Channels</title>
     <link href="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video-js.min.css" rel="stylesheet">
     <style>
+        /* Basic styles */
         body {
             font-family: Arial, sans-serif;
-            background-color: #fafafa;
             margin: 0;
             padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Light mode */
+        body.light-mode {
+            background-color: #fafafa;
             color: #333;
+        }
+
+        /* Dark mode */
+        body.dark-mode {
+            background-color: #1e1e1e;
+            color: #ddd;
         }
 
         h1 {
@@ -33,6 +45,23 @@
             border-radius: 5px;
             border: 1px solid #ddd;
             background-color: #fff;
+        }
+
+        /* Toggle Dark/Light Mode */
+        .mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .mode-toggle:hover {
+            background-color: #0056b3;
         }
 
         .channel-list {
@@ -95,21 +124,26 @@
             background-color: #0056b3;
         }
 
+        /* Video player container */
         .video-container {
             display: none;
             margin-top: 10px;
+            max-width: 100%;
+            width: 100%;
         }
 
         .video-container video {
             width: 100%;
-            max-width: 400px;
+            max-width: 100%;
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
-<body>
+<body class="light-mode">
+
+    <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
 
     <h1>IPTV Channels</h1>
 
@@ -222,6 +256,22 @@
                 });
 
                 player.play();
+            }
+        }
+
+        // Toggle between Light and Dark mode
+        function toggleMode() {
+            const body = document.body;
+            const modeToggleButton = document.querySelector('.mode-toggle');
+
+            if (body.classList.contains('light-mode')) {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                modeToggleButton.textContent = "Switch to Light Mode";
+            } else {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                modeToggleButton.textContent = "Switch to Dark Mode";
             }
         }
     </script>
