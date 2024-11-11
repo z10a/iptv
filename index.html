@@ -171,9 +171,9 @@
         const itemsPerPage = 100;
 
         // Fetch channel and stream data
-        Promise.all([
+        Promise.all([ 
             fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()),
-            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json())
+            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json()) 
         ])
         .then(([channelData, streamData]) => {
             allChannels = channelData;
