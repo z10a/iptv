@@ -181,8 +181,40 @@
     <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
     <script>
-        let channels = [];
-        let streams = [];
+        // Sample channel data (mock data)
+        let channels = [
+            {
+                "id": "BBCNews.uk",
+                "name": "BBC News",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BBC_News_2022_logo.svg/800px-BBC_News_2022_logo.svg.png"
+            },
+            {
+                "id": "CNN.us",
+                "name": "CNN",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/c/c9/CNN.svg"
+            },
+            {
+                "id": "AlJazeera.en",
+                "name": "Al Jazeera English",
+                "logo": "https://upload.wikimedia.org/wikipedia/commons/5/53/Al_Jazeera_English_logo_2013.svg"
+            }
+        ];
+
+        // Sample stream data (mock data)
+        let streams = [
+            {
+                "channel": "BBCNews.uk",
+                "url": "https://bbc.co.uk/stream.m3u8"
+            },
+            {
+                "channel": "CNN.us",
+                "url": "https://cnn.com/stream.m3u8"
+            },
+            {
+                "channel": "AlJazeera.en",
+                "url": "https://aljazeera.com/stream.m3u8"
+            }
+        ];
 
         let filteredChannels = channels;
         let currentChannelIndex = 0;
@@ -264,31 +296,12 @@
         // Toggle between dark and light mode
         function toggleMode() {
             const body = document.body;
-            const modeToggleButton = document.querySelector('.mode-toggle');
-            
-            if (body.classList.contains('light-mode')) {
-                body.classList.remove('light-mode');
-                body.classList.add('dark-mode');
-                modeToggleButton.textContent = "🌞 Switch to Light Mode";
-                localStorage.setItem('mode', 'dark'); // Save the mode in localStorage
-            } else {
-                body.classList.remove('dark-mode');
-                body.classList.add('light-mode');
-                modeToggleButton.textContent = "🌙 Switch to Dark Mode";
-                localStorage.setItem('mode', 'light'); // Save the mode in localStorage
-            }
+            body.classList.toggle('dark-mode');
+            const button = document.querySelector('.mode-toggle');
+            button.textContent = body.classList.contains('dark-mode') ? '🌞 Switch to Light Mode' : '🌙 Switch to Dark Mode';
         }
 
-        // Check if there's a saved mode in localStorage and apply it
-        const savedMode = localStorage.getItem('mode');
-        if (savedMode) {
-            document.body.classList.remove('light-mode', 'dark-mode');
-            document.body.classList.add(savedMode);
-            const modeToggleButton = document.querySelector('.mode-toggle');
-            modeToggleButton.textContent = savedMode === 'dark' ? "🌞 Switch to Light Mode" : "🌙 Switch to Dark Mode";
-        }
-
-        // Initial load
+        // Initial load of channels
         loadChannels();
     </script>
 </body>
