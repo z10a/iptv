@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPTV Channels</title>
-    <link href="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video-js.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -55,15 +54,6 @@
         <!-- IPTV channels will be listed here -->
     </div>
 
-    <!-- Video.js player (hidden initially) -->
-    <div id="video-player-container" style="display:none; text-align:center; padding:20px;">
-        <h2>Now Playing</h2>
-        <video id="iptvPlayer" class="video-js vjs-default-skin" controls preload="auto" style="max-width: 100%;">
-            Your browser does not support the video tag.
-        </video>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
     <script>
         // Fetch the channels.json data from the URL
         fetch('https://iptv-org.github.io/api/channels.json')
@@ -80,7 +70,7 @@
                     const channelHtml = `
                         <img src="${channel.logo}" alt="${channel.name}" />
                         <h3>${channel.name}</h3>
-                        <a href="javascript:void(0)" onclick="playChannel('${channel.url}')">Watch Now</a>
+                        <a href="${channel.url}" target="_blank">Watch Now</a>
                     `;
                     channelElement.innerHTML = channelHtml;
 
@@ -92,24 +82,6 @@
                 console.error('Error fetching channels:', error);
                 document.getElementById('channel-container').innerHTML = '<p>Failed to load channels. Please try again later.</p>';
             });
-
-        // Play the selected channel in the Video.js player
-        function playChannel(streamUrl) {
-            // Show the video player
-            document.getElementById('video-player-container').style.display = 'block';
-            
-            // Set the stream URL in the video player
-            const player = videojs('iptvPlayer', {
-                techOrder: ['html5'],
-                sources: [{
-                    src: streamUrl,
-                    type: 'application/x-mpegURL'
-                }]
-            });
-
-            // Play the stream
-            player.play();
-        }
     </script>
 
 </body>
