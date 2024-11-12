@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,6 +30,7 @@
         h1 {
             text-align: center;
             margin-top: 20px;
+            cursor: pointer;
         }
 
         .search-container {
@@ -50,20 +52,14 @@
         /* Toggle Dark/Light Mode */
         .mode-toggle {
             position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 8px;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
             background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 50%;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .mode-toggle:hover {
@@ -72,11 +68,10 @@
 
         .channel-list {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+            grid-template-columns: 1fr;
             gap: 20px;
             padding: 20px;
         }
-
 
         .channel {
             background-color: #fff;
@@ -84,11 +79,13 @@
             overflow: hidden;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
+            transition: background-color 0.3s;
         }
 
         .channel img {
-            max-width: 100%;
-            height: auto;
+            max-width: 200px;
+            height: 120px;
+            object-fit: cover;
             border-bottom: 1px solid #ddd;
         }
 
@@ -135,27 +132,73 @@
         .video-container {
             display: none;
             margin-top: 10px;
-            max-width: 100%;
+            max-width: 640px;
             width: 100%;
         }
 
         .video-container video {
-            width: 100%;
-            max-width: 100%;
-            height: auto;
+            width: 640px;
+            height: 360px;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
+
+        .video-js {
+            height: 360px;
+            width: 640px;
+            display: block;
+            vertical-align: top;
+            box-sizing: border-box;
+            color: #fff;
+            background-color: #000;
+            position: relative;
+            padding: 0;
+            font-size: 10px;
+            line-height: 1;
+            font-weight: 400;
+            font-style: normal;
+            font-family: Arial, Helvetica, sans-serif;
+            word-break: initial;
+        }
+
+        /* Additional style for Video.js */
+        .video-js .vjs-tech {
+            width: 640px !important;
+            height: 360px !important;
+        }
+
+        /* Dark mode specific styling */
+        body.dark-mode .channel {
+            background-color: #555;
+            /* Gray background for channels */
+        }
+
+        body.dark-mode .channel a {
+            background-color: #0062cc;
+        }
+
+        body.dark-mode .channel a:hover {
+            background-color: #004085;
+        }
+
+        body.dark-mode h1,
+        body.dark-mode .search-container input {
+            color: white;
+        }
+
+        /* Fullscreen styling for video */
+        .vjs-fullscreen .vjs-tech {
+            width: 100% !important;
+            height: 100% !important;
+        }
     </style>
 </head>
+
 <body class="light-mode">
 
-    <!-- Small size Dark Mode Toggle with icons -->
-    <button class="mode-toggle" onclick="toggleMode()">
-        <span id="mode-icon">&#9728;</span> <!-- Sun icon for light mode -->
-    </button>
+    <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
 
-    <h1>IPTV Channels</h1>
+    <h1 onclick="reloadPage()">IPTV Channels</h1> <!-- Click to reload the page -->
 
     <!-- Search Bar -->
     <div class="search-container">
@@ -181,9 +224,9 @@
         const itemsPerPage = 100;
 
         // Fetch channel and stream data
-        Promise.all([
-            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()),
-            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json())
+        Promise.all([ 
+            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()), 
+            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json()) 
         ])
         .then(([channelData, streamData]) => {
             allChannels = channelData;
@@ -209,7 +252,7 @@
                     const channelElement = document.createElement('div');
                     channelElement.classList.add('channel');
                     channelElement.innerHTML = `
-                        <img src="${channel.logo}" alt="${channel.name}" />
+                        <img src="${channel.logo || ''}" alt="${channel.name}" />
                         <div class="channel-name">${channel.name}</div>
                         <a href="javascript:void(0)" onclick="toggleVideo(${i}, '${stream.url}')">Watch Now</a>
                         <div id="video-container-${i}" class="video-container">
@@ -246,44 +289,51 @@
             loadChannels();
         }
 
-        // Function to toggle video display and play the selected stream
+        // Toggle video display and play the selected stream
         function toggleVideo(index, streamUrl) {
             const videoContainer = document.getElementById(`video-container-${index}`);
             const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
 
-            // If the video is already visible, hide it and pause
-            if (videoContainer.style.display === 'block') {
-                videoContainer.style.display = 'none';
-                videoPlayer.pause();
-            } else {
-                // Otherwise, show the video
-                videoContainer.style.display = 'block';
-                const player = videojs(videoPlayer, {
-                    techOrder: ['html5'],
-                    sources: [{ src: streamUrl, type: 'application/x-mpegURL' }]
-                });
-                player.play();
-            }
+            // Hide all video containers and stop all playing videos
+            const allVideoContainers = document.querySelectorAll('.video-container');
+            allVideoContainers.forEach(container => container.style.display = 'none');
+
+            const allVideoPlayers = document.querySelectorAll('video');
+            allVideoPlayers.forEach(player => player.pause());
+
+            // Display and play the selected video
+            videoContainer.style.display = 'block';
+            const player = videojs(videoPlayer, {
+                autoplay: true,
+                controls: true,
+                sources: [{
+                    src: streamUrl,
+                    type: 'application/x-mpegURL'
+                }]
+            });
         }
 
-        // Toggle between Light and Dark mode
+        // Toggle light/dark mode
         function toggleMode() {
             const body = document.body;
-            const modeToggleButton = document.querySelector('.mode-toggle');
-            const modeIcon = document.getElementById('mode-icon');
-
-            if (body.classList.contains('light-mode')) {
-                body.classList.remove('light-mode');
-                body.classList.add('dark-mode');
-                modeToggleButton.style.backgroundColor = '#333';
-                modeIcon.innerHTML = '☽'; // Sun icon for dark mode
-            } else {
+            const modeButton = document.querySelector('.mode-toggle');
+            if (body.classList.contains('dark-mode')) {
                 body.classList.remove('dark-mode');
                 body.classList.add('light-mode');
-                modeToggleButton.style.backgroundColor = '#007bff';
-                modeIcon.innerHTML = '☀'; // Moon icon for light mode
+                modeButton.textContent = 'Switch to Dark Mode';
+            } else {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                modeButton.textContent = 'Switch to Light Mode';
             }
         }
+
+        // Reload the page
+        function reloadPage() {
+            location.reload();
+        }
     </script>
+
 </body>
+
 </html>
