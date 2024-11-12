@@ -245,30 +245,10 @@
             loadChannels();
         }
 
-        // Function to insert the ad in a random position in the body
-        function insertAdRandomly() {
-            const adHTML = `
-                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5412190798174768" crossorigin="anonymous"></script>
-                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5412190798174768" data-ad-slot="9299009820" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            `;
-            const adContainer = document.createElement('div');
-            adContainer.innerHTML = adHTML;
-
-            // Get a random index for placing the ad
-            const randomIndex = Math.floor(Math.random() * document.body.children.length);
-            document.body.insertBefore(adContainer, document.body.children[randomIndex]);
-        }
-
-        // Toggle video display and play the selected stream, with an ad shown before it
+        // Function to toggle video display and play the selected stream
         function toggleVideo(index, streamUrl) {
             const videoContainer = document.getElementById(`video-container-${index}`);
             const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
-
-            // Show an ad in a random position
-            insertAdRandomly();
 
             // If the video is already visible, hide it and pause
             if (videoContainer.style.display === 'block') {
