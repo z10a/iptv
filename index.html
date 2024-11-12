@@ -50,14 +50,20 @@
         /* Toggle Dark/Light Mode */
         .mode-toggle {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 10px;
+            top: 10px;
+            right: 10px;
+            padding: 8px;
             background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 50%;
             cursor: pointer;
+            font-size: 18px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .mode-toggle:hover {
@@ -66,7 +72,7 @@
 
         .channel-list {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             padding: 20px;
         }
@@ -139,23 +145,14 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-
-        .ad-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
     </style>
 </head>
 <body class="light-mode">
 
-    <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
+    <!-- Small size Dark Mode Toggle with icons -->
+    <button class="mode-toggle" onclick="toggleMode()">
+        <span id="mode-icon">&#9728;</span> <!-- Sun icon for light mode -->
+    </button>
 
     <h1>IPTV Channels</h1>
 
@@ -180,7 +177,7 @@
         let filteredChannels = [];
         let streams = [];
         let currentChannelIndex = 0;
-        const itemsPerPage = 6; // Adjust this based on your need for testing
+        const itemsPerPage = 100;
 
         // Fetch channel and stream data
         Promise.all([
@@ -220,12 +217,6 @@
                             </video>
                         </div>
                     `;
-
-                    // Insert a random ad in the channel list
-                    if (Math.random() < 0.3) { // 30% chance to insert an ad
-                        insertAdRandomly(channelContainer);
-                    }
-
                     channelContainer.appendChild(channelElement);
                 }
             }
@@ -237,20 +228,6 @@
             }
         }
 
-        // Insert an ad randomly in the list
-        function insertAdRandomly(channelContainer) {
-            const adContainer = document.createElement('div');
-            adContainer.classList.add('ad-container');
-            adContainer.innerHTML = `
-                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5412190798174768" crossorigin="anonymous"></script>
-                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5412190798174768" data-ad-slot="9299009820" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-            `;
-            const randomIndex = Math.floor(Math.random() * 3); // Random column (0, 1, 2)
-            const columns = channelContainer.children;
-            columns[randomIndex].insertAdjacentElement('beforebegin', adContainer);
-        }
-
         // Show more channels
         function loadMoreChannels() {
             loadChannels();
@@ -259,23 +236,33 @@
         // Filter channels based on search input
         function filterChannels() {
             const searchTerm = document.getElementById('search-bar').value.toLowerCase();
-            filteredChannels = allChannels.filter(channel => channel.name.toLowerCase().includes(searchTerm));
+            filteredChannels = allChannels.filter(channel =>
+                channel.name.toLowerCase().includes(searchTerm)
+            );
+
             currentChannelIndex = 0;
             document.getElementById('channel-container').innerHTML = '';
             loadChannels();
         }
 
-        // Toggle video display and play
+        // Function to toggle video display and play the selected stream
         function toggleVideo(index, streamUrl) {
             const videoContainer = document.getElementById(`video-container-${index}`);
             const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
-            videoContainer.style.display = 'block';
 
-            const player = videojs(videoPlayer, {
-                techOrder: ['html5'],
-                sources: [{ src: streamUrl, type: 'application/x-mpegURL' }]
-            });
-            player.play();
+            // If the video is already visible, hide it and pause
+            if (videoContainer.style.display === 'block') {
+                videoContainer.style.display = 'none';
+                videoPlayer.pause();
+            } else {
+                // Otherwise, show the video
+                videoContainer.style.display = 'block';
+                const player = videojs(videoPlayer, {
+                    techOrder: ['html5'],
+                    sources: [{ src: streamUrl, type: 'application/x-mpegURL' }]
+                });
+                player.play();
+            }
         }
 
         // Toggle between Light and Dark mode
@@ -288,12 +275,12 @@
                 body.classList.remove('light-mode');
                 body.classList.add('dark-mode');
                 modeToggleButton.style.backgroundColor = '#333';
-                modeIcon.innerHTML = '☽'; // Moon icon for dark mode
+                modeIcon.innerHTML = '☽'; // Sun icon for dark mode
             } else {
                 body.classList.remove('dark-mode');
                 body.classList.add('light-mode');
                 modeToggleButton.style.backgroundColor = '#007bff';
-                modeIcon.innerHTML = '☀'; // Sun icon for light mode
+                modeIcon.innerHTML = '☀'; // Moon icon for light mode
             }
         }
     </script>
