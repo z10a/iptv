@@ -1,13 +1,32 @@
-// URL to fetch the list of IPTV channels from the API
-const apiUrl = 'https://iptv-org.github.io/api/channels.json';
+// URL to the M3U playlist from IPTV-Org
+const m3uUrl = 'https://iptv-org.github.io/iptv/index.m3u';
 
-// Function to fetch and display channels
+// Function to fetch the M3U playlist, parse it, and display channels
 function fetchChannels() {
-    fetch(apiUrl)
-        .then(response => response.json())
+    fetch(m3uUrl)
+        .then(response => response.text())
         .then(data => {
+            // Split the M3U file content into lines
+            const lines = data.split('\n');
+            const channels = [];
+            let currentChannel = {};
+            
+            // Loop through the lines and extract channel names and URLs
+            lines.forEach(line => {
+                if (line.startsWith('#EXTINF:')) {
+                    // Extract the channel name and metadata from the M3U
+                    const name = line.split(',')[1];
+                    currentChannel = { name };
+                } else if (line.startsWith('http')) {
+                    // Extract the URL of the stream
+                    currentChannel.url = line;
+                    channels.push(currentChannel);
+                }
+            });
+
+            // Display channels on the page
             const channelList = document.getElementById('channels');
-            data.forEach(channel => {
+            channels.forEach(channel => {
                 const listItem = document.createElement('li');
                 listItem.textContent = channel.name;
                 listItem.onclick = () => playChannel(channel.url); // play the channel
@@ -15,43 +34,16 @@ function fetchChannels() {
             });
         })
         .catch(error => {
-            console.error('Error fetching channels:', error);
+            console.error('Error fetching M3U data:', error);
         });
 }
 
-// Function to play the selected channel
+// Function to play the selected IPTV channel
 function playChannel(streamUrl) {
     const videoPlayer = document.getElementById('video-player');
     videoPlayer.src = streamUrl;
     videoPlayer.play();
 }
-
-// Handle Search Bar Input
-document.getElementById('search-bar').addEventListener('input', function() {
-    const searchQuery = this.value.toLowerCase();
-    const channels = document.querySelectorAll('#channels li');
-    channels.forEach(channel => {
-        const channelName = channel.textContent.toLowerCase();
-        if (channelName.includes(searchQuery)) {
-            channel.style.display = '';
-        } else {
-            channel.style.display = 'none';
-        }
-    });
-});
-
-// Handle Category Filter Change
-document.getElementById('category-filter').addEventListener('change', function() {
-    const selectedCategory = this.value;
-    const channels = document.querySelectorAll('#channels li');
-    channels.forEach(channel => {
-        if (selectedCategory === 'all' || channel.classList.contains(selectedCategory)) {
-            channel.style.display = '';
-        } else {
-            channel.style.display = 'none';
-        }
-    });
-});
 
 // Call the fetchChannels function to load IPTV channels on page load
 document.addEventListener('DOMContentLoaded', fetchChannels);
