@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPTV Channels</title>
     <link href="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video-js.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         /* Basic styles */
         body {
@@ -82,6 +84,14 @@
         .mode-toggle:hover {
             background-color: #0056b3;
             transform: scale(1.1);
+        }
+
+        .mode-toggle i {
+            transition: transform 0.3s ease;
+        }
+
+        .mode-toggle:hover i {
+            transform: rotate(180deg); /* Rotate the icon when hovered */
         }
 
         .channel-list {
@@ -194,7 +204,10 @@
 
 <body class="light-mode">
 
-    <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
+    <!-- Mode Toggle Button with Icon -->
+    <button class="mode-toggle" onclick="toggleMode()">
+        <i class="fas fa-sun"></i> <!-- Sun icon for light mode -->
+    </button>
 
     <h1 onclick="reloadPage()">IPTV Channels</h1> <!-- Click to reload the page -->
 
@@ -315,14 +328,18 @@
         function toggleMode() {
             const body = document.body;
             const modeButton = document.querySelector('.mode-toggle');
+            const icon = modeButton.querySelector('i');
+
             if (body.classList.contains('dark-mode')) {
                 body.classList.remove('dark-mode');
                 body.classList.add('light-mode');
-                modeButton.textContent = 'Switch to Dark Mode';
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
             } else {
                 body.classList.remove('light-mode');
                 body.classList.add('dark-mode');
-                modeButton.textContent = 'Switch to Light Mode';
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
             }
         }
 
