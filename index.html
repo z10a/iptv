@@ -1,63 +1,361 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="IPTV streaming platform">
-    <meta name="keywords" content="IPTV, streaming, channels, video">
-    <meta name="author" content="Your Name">
-    <title>IPTV Streaming Website</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>IPTV Channels</title>
+    <link href="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video-js.min.css" rel="stylesheet">
+    <style>
+        /* Basic styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Light mode */
+        body.light-mode {
+            background: linear-gradient(135deg, #f7f7f7, #e1e1e1);
+            color: #333;
+        }
+
+        /* Dark mode */
+        body.dark-mode {
+            background: linear-gradient(135deg, #121212, #1f1f1f);
+            color: #ddd;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+            cursor: pointer;
+            font-size: 3rem;
+            color: #007bff;
+            transition: transform 0.3s ease;
+        }
+
+        h1:hover {
+            transform: scale(1.05);
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .search-container input {
+            padding: 15px;
+            font-size: 18px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-container input:focus {
+            border-color: #007bff;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+
+        /* Toggle Dark/Light Mode */
+        .mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .mode-toggle:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
+
+        .channel-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .channel {
+            background-color: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+            transform: scale(1);
+        }
+
+        .channel:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .channel img {
+            max-width: 250px;
+            height: 140px;
+            object-fit: cover;
+            border-bottom: 1px solid #ddd;
+            transition: transform 0.3s ease;
+        }
+
+        .channel:hover img {
+            transform: scale(1.05);
+        }
+
+        .channel .channel-name {
+            font-size: 20px;
+            padding: 15px;
+            font-weight: bold;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .channel a {
+            display: block;
+            margin: 15px 0;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: background-color 0.3s ease;
+        }
+
+        .channel a:hover {
+            background-color: #0056b3;
+        }
+
+        .pagination {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .pagination button {
+            padding: 14px 28px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .pagination button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        /* Video player container */
+        .video-container {
+            display: none;
+            margin-top: 20px;
+            max-width: 640px;
+            width: 100%;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 360px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Enhanced styles for Video.js */
+        .video-js {
+            border-radius: 8px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark mode specific styling */
+        body.dark-mode .channel {
+            background-color: #333;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        body.dark-mode .channel a {
+            background-color: #0062cc;
+        }
+
+        body.dark-mode .channel a:hover {
+            background-color: #004085;
+        }
+
+        body.dark-mode h1,
+        body.dark-mode .search-container input {
+            color: white;
+        }
+
+        /* Fullscreen styling for video */
+        .vjs-fullscreen .vjs-tech {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
 </head>
-<body>
 
-    <!-- Navigation -->
-    <nav>
-        <ul>
-            <li><a href="#home">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#products">Products</a></li>
-            <li><a href="#blog">Blog</a></li>
-            <li><a href="#contact">Contact</a></li>
-            <li><a href="#faq">FAQ</a></li>
-        </ul>
-    </nav>
+<body class="light-mode">
 
-    <!-- Homepage Section -->
-    <section id="home">
-        <header>
-            <h1>Welcome to IPTV Streaming!</h1>
-            <p>Stream your favorite channels, anytime, anywhere.</p>
-            <a href="#products" class="cta">Explore Products</a>
-        </header>
-    </section>
+    <button class="mode-toggle" onclick="toggleMode()">Switch to Dark Mode</button>
 
-    <!-- IPTV Channels Section -->
-    <section id="channels-section">
-        <h2>Available IPTV Channels</h2>
-        <input type="text" id="search-bar" placeholder="Search for a channel...">
-        <ul id="channels">
-            <!-- IPTV Channels will be dynamically loaded here -->
-        </ul>
-    </section>
+    <h1 onclick="reloadPage()">IPTV Channels</h1> <!-- Click to reload the page -->
 
-    <!-- Video Player Section -->
-    <section id="video-container">
-        <video id="video-player" width="100%" controls>
-            Your browser does not support the video tag.
-        </video>
-    </section>
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" id="search-bar" placeholder="Search Channels" oninput="filterChannels()">
+    </div>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 IPTV Streaming Platform. All rights reserved.</p>
-        <div class="social-media">
-            <a href="https://facebook.com" target="_blank">Facebook</a>
-            <a href="https://twitter.com" target="_blank">Twitter</a>
-            <a href="https://instagram.com" target="_blank">Instagram</a>
-        </div>
-    </footer>
+    <!-- Channel List -->
+    <div id="channel-container" class="channel-list"></div>
 
-    <script src="scripts.js"></script>
+    <!-- Show More Button -->
+    <div class="pagination">
+        <button id="show-more" onclick="loadMoreChannels()">Show More</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/video.js@7.15.4/dist/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
+
+    <script>
+        let allChannels = [];
+        let filteredChannels = [];
+        let streams = [];
+        let currentChannelIndex = 0;
+        const itemsPerPage = 100;
+
+        // Fetch channel and stream data
+        Promise.all([ 
+            fetch('https://iptv-org.github.io/api/channels.json').then(response => response.json()), 
+            fetch('https://iptv-org.github.io/api/streams.json').then(response => response.json()) 
+        ])
+        .then(([channelData, streamData]) => {
+            allChannels = channelData;
+            streams = streamData;
+            filteredChannels = allChannels;
+            loadChannels();  // Load initial channels
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            document.getElementById('channel-container').innerHTML = '<p>Failed to load channels. Please try again later.</p>';
+        });
+
+        // Load channels into the page
+        function loadChannels() {
+            const channelContainer = document.getElementById('channel-container');
+            const endIndex = Math.min(currentChannelIndex + itemsPerPage, filteredChannels.length);
+
+            for (let i = currentChannelIndex; i < endIndex; i++) {
+                const channel = filteredChannels[i];
+                const stream = streams.find(s => s.channel === channel.id);
+
+                if (stream) {
+                    const channelElement = document.createElement('div');
+                    channelElement.classList.add('channel');
+                    channelElement.innerHTML = `
+                        <img src="${channel.logo || ''}" alt="${channel.name}" />
+                        <div class="channel-name">${channel.name}</div>
+                        <a href="javascript:void(0)" onclick="toggleVideo(${i}, '${stream.url}')">Watch Now</a>
+                        <div id="video-container-${i}" class="video-container">
+                            <video id="iptvPlayer-${i}" class="video-js vjs-default-skin" controls>
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `;
+                    channelContainer.appendChild(channelElement);
+                }
+            }
+
+            currentChannelIndex = endIndex;
+
+            if (currentChannelIndex >= filteredChannels.length) {
+                document.getElementById('show-more').style.display = 'none';
+            }
+        }
+
+        // Show more channels
+        function loadMoreChannels() {
+            loadChannels();
+        }
+
+        // Filter channels based on search input
+        function filterChannels() {
+            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+            filteredChannels = allChannels.filter(channel =>
+                channel.name.toLowerCase().includes(searchTerm)
+            );
+
+            currentChannelIndex = 0;
+            document.getElementById('channel-container').innerHTML = '';
+            loadChannels();
+        }
+
+        // Toggle video display and play the selected stream
+        function toggleVideo(index, streamUrl) {
+            const videoContainer = document.getElementById(`video-container-${index}`);
+            const videoPlayer = document.getElementById(`iptvPlayer-${index}`);
+
+            // Hide all video containers and stop all playing videos
+            const allVideoContainers = document.querySelectorAll('.video-container');
+            allVideoContainers.forEach(container => container.style.display = 'none');
+
+            const allVideoPlayers = document.querySelectorAll('video');
+            allVideoPlayers.forEach(player => player.pause());
+
+            // Display and play the selected video
+            videoContainer.style.display = 'block';
+            const player = videojs(videoPlayer, {
+                autoplay: true,
+                controls: true,
+                sources: [{
+                    src: streamUrl,
+                    type: 'application/x-mpegURL'
+                }]
+            });
+        }
+
+        // Toggle light/dark mode
+        function toggleMode() {
+            const body = document.body;
+            const modeButton = document.querySelector('.mode-toggle');
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                modeButton.textContent = 'Switch to Dark Mode';
+            } else {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                modeButton.textContent = 'Switch to Light Mode';
+            }
+        }
+
+        // Reload the page
+        function reloadPage() {
+            location.reload();
+        }
+    </script>
+
 </body>
+
 </html>
